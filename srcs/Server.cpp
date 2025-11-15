@@ -6,7 +6,7 @@
 /*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 13:38:41 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/15 16:46:47 by scarlucc         ###   ########.fr       */
+/*   Updated: 2025/11/15 17:52:22 by scarlucc         ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -101,8 +101,10 @@ void Server::run()
             }
             if (_pfds[i].revents & POLLIN) {
                 handle_client_read(i);
-            }
-            _pfds[i].revents = 0;
+				continue; //dovrebbe evitare segfault in seguito a QUIT
+			}
+			if (_pfds.size() > i)
+            	_pfds[i].revents = 0;
         }
     }
 }
