@@ -47,4 +47,4 @@ re: fclean all
 
 .PHONY: all clean fclean re $(OBJ_DIR)
 
-.SILENT:
+# .SILENT:

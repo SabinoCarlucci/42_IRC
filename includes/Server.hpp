@@ -1,14 +1,14 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
+/*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 11:46:27 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/16 11:39:44 by scarlucc         ###   ########.fr       */
+/*   Updated: 2025/11/16 13:09:15 by negambar         ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #ifndef SERVER_HPP
 #define SERVER_HPP
@@ -40,8 +40,8 @@ private:
     int set_nonblocking(int fd);
     int make_server_socket(int port);
 
-	void Server::command_map();
-	bool Server::handle_command(int fd, const std::vector<std::string> &line);
+	void command_map();
+	bool handle_command(int fd, const std::vector<std::string> &line);
 
     // helpers
     std::vector<std::string> split(const std::string &s, const std::string &delim);

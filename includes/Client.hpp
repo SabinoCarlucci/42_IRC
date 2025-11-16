@@ -1,14 +1,14 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
+/*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 11:42:06 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/15 12:36:54 by scarlucc         ###   ########.fr       */
+/*   Updated: 2025/11/16 11:46:29 by negambar         ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #ifndef CLIENT
 #define CLIENT
@@ -23,6 +23,7 @@ private:
     std::string _buffer;
     std::string _nick;
     std::string _user;
+    std::string _hostname;
 	bool		_authenticated;
 	
 public:
@@ -33,6 +34,9 @@ public:
 	
 	int get_client_fd() const;
 	//void set_client_fd(int fd);
+
+    std::string &get_hostname();
+    void set_hostname(const std::string &h);
     
     bool get_authenticated() const;
     void set_authenticated();

@@ -1,14 +1,14 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
+/*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 13:38:41 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/16 11:12:23 by scarlucc         ###   ########.fr       */
+/*   Updated: 2025/11/16 13:20:33 by negambar         ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 
 #include "../includes/Server.hpp"
@@ -126,6 +126,13 @@ void Server::accept_new_connection()
         close(client_fd);
         return;
     }
+    
+    char ipbuf[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &(cli_addr.sin_addr), ipbuf, INET_ADDRSTRLEN);
+
+    Client *c = new Client(client_fd);
+    c->set_hostname(ipbuf);
+    _clients[client_fd] = c;
 
     struct pollfd p;
     p.fd = client_fd;
@@ -133,10 +140,6 @@ void Server::accept_new_connection()
     p.revents = 0;
     _pfds.push_back(p);
 
-    Client *c = new Client(client_fd);
-    _clients[client_fd] = c;
-
-    char ipbuf[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &(cli_addr.sin_addr), ipbuf, INET_ADDRSTRLEN);
     std::cout << "Accepted client fd=" << client_fd << " ip=" << ipbuf
               << " port=" << ntohs(cli_addr.sin_port) << std::endl;
@@ -166,10 +169,15 @@ void Server::handle_client_read(int idx)
                 // minimal parsing: split at space
                 std::vector<std::string> parts = split(line, " ");
                 if (!parts.empty()) {
-                    std::string cmd = parts[0];
-                    if (cmd == "PASS") {
-						/* std::string cl_psw = parts[1];
-						if (cl_psw) */
+                    bool ret = handle_command(fd, parts);
+                    if (!ret)
+                        send(fd, "ciao\n", 6, 0);
+                    else
+                        return;
+                    //std::string cmd = parts[0];
+                    /* if (cmd == "PASS") {
+					    std::string cl_psw = parts[1];
+						if (cl_psw)
                         if (parts.size() >= 2 && parts[1] == _password) {
                             _clients[fd]->set_authenticated();
                             std::string reply = "Password accepted";
@@ -180,9 +188,21 @@ void Server::handle_client_read(int idx)
                         }
                     } else if (cmd == "NICK") {
                         if (parts.size() >= 2) {
+                            std::map<int, Client *>::iterator it = _clients.begin();
+                            for (; it != _clients.end(); ++it)
+                            {
+                                if (it->first != fd && it->second->get_nick() == parts[1])
+                                {
+                                    send(fd, "Nickname already taken\n", 23, 0);
+                                    break;
+                                }
+                            }
+                            if (it == _clients.end())
+                            {
                             _clients[fd]->set_nick(parts[1]);
                             std::string reply = "Nickname set to " + parts[1] + "\n";
                             send(fd, reply.c_str(), reply.size(), 0);
+                            }
                         }
                     } else if (cmd == "USER") {
                         if (parts.size() >= 2) {
@@ -203,12 +223,12 @@ void Server::handle_client_read(int idx)
 						fd_to_string = convert.str();
                         std::string msg = "[" + (_clients[fd]->get_nick().empty() ? fd_to_string : _clients[fd]->get_nick()) + "]: " + line + "\n";
                         broadcast_from(fd, msg);
-                    }
+                    } */
                 }
             }
             b.erase(0, pos + 1);
         }
-    } else if (n == 0) {
+    }else if (n == 0) {
         std::cout << "Client fd=" << fd << " disconnected\n";
         close_client(idx);
     } else {

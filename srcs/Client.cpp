@@ -1,14 +1,14 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
+/*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 12:05:11 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/15 12:42:01 by scarlucc         ###   ########.fr       */
+/*   Updated: 2025/11/16 11:46:41 by negambar         ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #include "../includes/Client.hpp"
 
@@ -38,3 +38,6 @@ std::string Client::get_user() const { return _user; }
 void Client::set_user(const std::string &u) { _user = u; }
 
 std::string &Client::buffer() { return _buffer; }
+
+void Client::set_hostname(const std::string &h) {_hostname = h;}
+std::string &Client::get_hostname() {return (_hostname);}
