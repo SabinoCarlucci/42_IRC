@@ -5,7 +5,7 @@ CXXFLAGS =  -Wall -Wextra -Werror -std=c++98 -Iincludes -g -D_GLIBCXX_DEBUG #fla
 
 OBJ_DIR = objs
 
-SRC 	= main.cpp srcs/Client.cpp srcs/Server.cpp
+SRC 	= main.cpp srcs/Client.cpp srcs/Server.cpp srcs/commands.cpp
 OBJ = $(addprefix $(OBJ_DIR)/, $(notdir $(SRC:.cpp=.o)))
 
 

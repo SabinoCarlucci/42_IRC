@@ -6,7 +6,7 @@
 /*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 11:46:27 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/15 15:08:04 by scarlucc         ###   ########.fr       */
+/*   Updated: 2025/11/16 11:39:44 by scarlucc         ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -35,8 +35,13 @@ private:
     std::vector<struct pollfd> _pfds;
     std::map<int, Client*> _clients; // key: fd
 
+	std::map<std::string, bool (Server::*)(int, std::vector<std::string>)> _commands;
+
     int set_nonblocking(int fd);
     int make_server_socket(int port);
+
+	void Server::command_map();
+	bool Server::handle_command(int fd, const std::vector<std::string> &line);
 
     // helpers
     std::vector<std::string> split(const std::string &s, const std::string &delim);
@@ -55,6 +60,12 @@ public:
 
     // broadcast
     void broadcast_from(int sender_fd, const std::string &msg);
+
+	//commands
+	bool	pass(int fd, std::vector<std::string> vect);
+	bool	nick(int fd, std::vector<std::string> vect);
+	bool	user(int fd, std::vector<std::string> vect);
+	bool	quit(int fd, std::vector<std::string> vect);
 };
 
 #endif

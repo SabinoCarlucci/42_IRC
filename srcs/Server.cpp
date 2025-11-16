@@ -6,7 +6,7 @@
 /*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 13:38:41 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/15 17:52:22 by scarlucc         ###   ########.fr       */
+/*   Updated: 2025/11/16 11:12:23 by scarlucc         ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -35,6 +35,8 @@ Server::Server(int port, const std::string &password)
     p.events = POLLIN;
     p.revents = 0;
     _pfds.push_back(p);
+
+	command_map();
 
     std::cout << "Server listening on port " << _port << "\n";
 }
