@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/16 11:00:25 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/16 13:11:27 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/17 16:48:38 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@ void Server::command_map()
 	_commands["PASS"] = &Server::pass;
 	_commands["USER"] = &Server::user;
 	_commands["QUIT"] = &Server::quit;
+	_commands["PRIVMSG"] = &Server::privMsg;
 }
 
 bool Server::handle_command(int fd, const std::vector<std::string> &line)
@@ -103,7 +104,7 @@ bool	Server::quit(int fd, std::vector<std::string> vect)
 	return (true);
 }
 
-// bool Server::privMsg(int fd, const std::vector<std::string> parts)
+// bool Server::privMsg(int fd, std::vector<std::string> parts)
 // {
 //     if (parts.size() < 3)
 //     {
@@ -131,5 +132,75 @@ bool	Server::quit(int fd, std::vector<std::string> vect)
 
 //     std::string prefix = ":" + sender->get_nick() + "!" + sender->get_user() + "@" + sender->get_hostname();
 //     std::string full = prefix + " PRIVMSG " + parts[1] + " " + parts[2] + "\r\n";
-//     send(it->first, full.c_str(), full.size(), 0);
+// 	std::string delim = ";";
+// 	std::vector<std::string> splitstr = split(parts[2], delim);
+// 	std::string sendit = "";
+// 	for (std::vector<std::string>::iterator it = splitstr.begin(); it != splitstr.end(); ++it)
+// 	{
+// 		full = prefix + " PRIVMSG " + parts[1] + " " + parts[2] + "\r\n";
+// 		if ((*it)[0] == '#' || (*it)[0] == '&')
+// 		{
+// 			sendit = full.insert(full.find("PRIVMSG ") + strlen("PRIVMSG "), *it);
+// 			// da fare con check (manda in canale specifico)
+// 		}
+// 		else
+// 		{
+// 			sendit = full.insert(full.find("PRIVMSG ") + strlen("PRIVMSG "), *it);
+// 			if (find_by_nick(*it) == NULL)
+// 			{
+// 				_clients[fd]->send_message(_clients[fd]->get_nick() + " " + *it + " No user found with given nick\n", fd);
+// 				continue;
+// 			}
+// 			if (!this->find_by_nick(*it)->send_message(sendit, fd))
+// 				return false;
+			
+// 		}
+// 		sendit = "";
+// 	}
+// 	return (true);
+// 	// // send(it->first, full.c_str(), full.size(), 0);
 // }
+
+
+
+bool Server::privMsg(int fd, std::vector<std::string> parts)
+{
+    // 1. Check for parameters (needs target and message)
+    if (parts.size() < 3 || parts[2][0] != ':')
+    {
+        // Use an appropriate IRC numeric reply instead of a custom string
+        send(fd, "412 :No text to send\r\n", 22, 0); // Example: ERR_NOTEXTTOSEND (412)
+        return false;
+    }
+
+    // parts[1] is the recipient's nickname/channel
+    std::string recipient = parts[1];
+    
+    // 2. Find the recipient (this is your existing find logic, or use a better lookup)
+    Client *receiver = find_by_nick(recipient); // Assuming you have a helper function
+	
+    
+    if (!receiver)
+    {
+        // Use an appropriate IRC numeric reply
+		std::string err = "401 " + recipient + " :No such nick/channel\r\n";
+        send(fd, err.c_str(), err.size(), 0); // Example: ERR_NOSUCHNICK (401)
+        return false;
+    }
+    
+    // 3. Construct the full message
+    Client *sender = _clients[fd];
+    std::string prefix = ":" + sender->get_nick() + "!" + sender->get_user() + "@" + sender->get_hostname();
+    
+    // Send the message as originally received to the recipient
+    std::string full_message = prefix + " PRIVMSG " + recipient + " " + parts[2] + "\r\n";
+    
+    // 4. Send the message
+    if (!receiver->send_message(full_message, receiver->get_client_fd())) // Pass the receiver's FD
+    {
+        // Handle error if sending failed
+        return false;
+    }
+    
+    return true;
+}

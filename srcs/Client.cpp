@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 12:05:11 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/16 11:46:41 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/17 16:11:01 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,12 +32,28 @@ bool Client::get_authenticated() const
 void Client::set_authenticated() { _authenticated = true; }
 
 std::string Client::get_nick() const { return _nick; }
+
 void Client::set_nick(const std::string &n) { _nick = n; }
 
 std::string Client::get_user() const { return _user; }
+
 void Client::set_user(const std::string &u) { _user = u; }
+
 
 std::string &Client::buffer() { return _buffer; }
 
+
 void Client::set_hostname(const std::string &h) {_hostname = h;}
+
 std::string &Client::get_hostname() {return (_hostname);}
+
+
+bool Client::send_message(std::string message, int fd)
+{
+	message += "\r\n";
+	if (send(fd, message.c_str(), message.size(), 0) == -1)
+	{
+		return false;
+	}
+	return true;
+}

@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 13:38:41 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/16 13:20:33 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/17 16:40:04 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,6 +77,18 @@ int Server::make_server_socket(int port) {
 
     return srv;
 }
+
+Client  *Server::find_by_nick(std::string &name)
+{
+    std::map<int, Client *>::iterator it = _clients.begin();
+    for (; it != _clients.end(); ++it)
+    {
+        if (it->second->get_nick() == name)
+            return (it->second);
+    }
+    return (NULL);
+}
+
 
 void Server::run()
 {
@@ -167,13 +179,13 @@ void Server::handle_client_read(int idx)
 				//const char *s = line.c_str();//per vedere in debug
                 std::cout << "[RECV fd=" << fd << "] " << line << std::endl;
                 // minimal parsing: split at space
-                std::vector<std::string> parts = split(line, " ");
+                std::vector<std::string> parts = split2(line, ' ', line.find(":"));
                 if (!parts.empty()) {
                     bool ret = handle_command(fd, parts);
                     if (!ret)
                         send(fd, "ciao\n", 6, 0);
-                    else
-                        return;
+                    // else
+                    //     return;
                     //std::string cmd = parts[0];
                     /* if (cmd == "PASS") {
 					    std::string cl_psw = parts[1];
@@ -273,4 +285,25 @@ std::vector<std::string> Server::split(const std::string &s, const std::string &
     }
     if (start < s.size()) elems.push_back(s.substr(start));
     return elems;
+}
+
+std::vector<std::string> Server::split2(std::string str, char c, size_t pos)
+{
+    std::vector<std::string> vect;
+    size_t i = 0;
+    std::size_t found;
+    while ((found = str.find(c, i)) != std::string::npos)
+    {
+        // if the ':' (pos) is inside the current token, push the rest of the string as a single token
+        if (pos != std::string::npos && pos >= i && pos < found)
+        {
+            vect.push_back(str.substr(i));
+            return (vect);
+        }
+        vect.push_back(str.substr(i, found - i));
+        i = found + 1;
+    }
+    if (i < str.size())
+        vect.push_back(str.substr(i));
+    return (vect);
 }

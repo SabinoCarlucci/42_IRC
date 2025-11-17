@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 11:46:27 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/16 13:09:15 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/17 16:39:22 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,11 @@ private:
 
     // helpers
     std::vector<std::string> split(const std::string &s, const std::string &delim);
+    std::vector<std::string> split2(std::string str, char c, size_t pos);
+    size_t strlen(char *s){size_t i = 0; while (s[i++]){}; return (i);}
+    Client  *find_by_nick(std::string &name);
 
+    
 public:
     Server(int port, const std::string &password);
     ~Server();
@@ -62,6 +66,7 @@ public:
     void broadcast_from(int sender_fd, const std::string &msg);
 
 	//commands
+    bool    privMsg(int fd, std::vector<std::string> vect);
 	bool	pass(int fd, std::vector<std::string> vect);
 	bool	nick(int fd, std::vector<std::string> vect);
 	bool	user(int fd, std::vector<std::string> vect);

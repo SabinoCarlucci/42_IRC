@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 11:42:06 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/16 11:46:29 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/17 16:11:17 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,8 @@ public:
 	
     std::string get_user() const;
 	void set_user(const std::string &u);
+
+    bool send_message(std::string message, int fd);
 };
 
 #endif
