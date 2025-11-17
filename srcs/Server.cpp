@@ -1,18 +1,19 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
+/*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 13:38:41 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/19 16:57:46 by scarlucc         ###   ########.fr       */
+/*   Updated: 2025/11/19 17:24:23 by negambar         ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 
 #include "../includes/Server.hpp"
 #include "../includes/Client.hpp"
+#include "../includes/Channel.hpp"
 
 #include <iostream>
 #include <unistd.h>
@@ -89,6 +90,28 @@ Client  *Server::find_by_nick(std::string &name)
     return (NULL);
 }
 
+// Channel *Server::find_user_channel(Client &c, std::string &name)
+// {
+//     int fd = c.get_client_fd();
+//     std::vector<Channel *>::iterator it = _clients[fd];
+//     for (; it != _channels.end(); ++it)
+//     {
+//         if ((*it)->get_name() == name)
+//             return ((*it));
+//     }
+//     return (NULL);
+// }
+
+Channel  *Server::find_channel_name(std::string &name)
+{
+    std::vector<Channel *>::iterator it = _channels.begin();
+    for (; it != _channels.end(); ++it)
+    {
+        if ((*it)->get_name() == name)
+            return ((*it));
+    }
+    return (NULL);
+}
 
 void Server::run()
 {

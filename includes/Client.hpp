@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 11:42:06 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/17 16:11:17 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/17 18:02:57 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,15 @@
 
 #include <string>
 #include <netinet/in.h>
+#include <string>
+#include <vector>
+#include <map>
+#include <poll.h>
+#include <stdio.h>
+#include <errno.h>
+#include <sstream>
+
+class Channel;
 
 class Client
 {
@@ -25,6 +34,7 @@ private:
     std::string _user;
     std::string _hostname;
 	bool		_authenticated;
+    std::vector<Channel *> _channels;
 	
 public:
     Client(int fd);
@@ -48,6 +58,7 @@ public:
 	void set_user(const std::string &u);
 
     bool send_message(std::string message, int fd);
+    Channel *isInChannel(std::string name);
 };
 
 #endif

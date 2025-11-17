@@ -1,14 +1,14 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
+/*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 11:46:27 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/19 12:52:47 by scarlucc         ###   ########.fr       */
+/*   Updated: 2025/11/19 17:23:30 by negambar         ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #ifndef SERVER_HPP
 #define SERVER_HPP
@@ -24,6 +24,7 @@
 #include <sstream>
 
 class Client;
+class Channel;
 
 class Server
 {
@@ -34,6 +35,7 @@ private:
 
     std::vector<struct pollfd> _pfds;
     std::map<int, Client*> _clients; // key: fd
+    std::vector<Channel *> _channels;
 
 	std::map<std::string, bool (Server::*)(int, std::vector<std::string>)> _commands;
 
@@ -48,7 +50,8 @@ private:
     std::vector<std::string> split2(std::string str, char c, size_t pos);
     size_t strlen(char *s){size_t i = 0; while (s[i++]){}; return (i);}
     Client  *find_by_nick(std::string &name);
-
+    Channel *find_channel_name(std::string &name);
+    Channel *find_user_channel(Client &c, std::string &name); //finds channel if user is in it
     
 public:
     Server(int port, const std::string &password);
@@ -58,9 +61,10 @@ public:
     void run();
 
     // internal actions
-    void accept_new_connection();
     void handle_client_read(int fd);
-    void close_client(int idx); // index in _pfds
+    void    accept_new_connection();
+    void    close_client(int idx); // index in _pfds
+    bool    send_to_channel(int fd, std::string recipient, std::vector<std::string> parts);
 
     // broadcast
     void broadcast_from(int sender_fd, const std::string &msg);

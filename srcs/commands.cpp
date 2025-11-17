@@ -6,11 +6,12 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/16 11:00:25 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/17 16:48:38 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/17 18:34:48 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Server.hpp"
+#include "../includes/Channel.hpp"
 #include "../includes/Client.hpp"
 
 void Server::command_map()
@@ -104,64 +105,29 @@ bool	Server::quit(int fd, std::vector<std::string> vect)
 	return (true);
 }
 
-// bool Server::privMsg(int fd, std::vector<std::string> parts)
-// {
-//     if (parts.size() < 3)
-//     {
-//         send(fd, "not enough parameters\ncorrect use: PRIVMSG <receiver> :msg", 59, 0);
-//         return false;
-//     }
-//     std::map<int, Client *>::iterator it = _clients.begin();
-//     for (; it != _clients.end(); ++it)
-//     {
-//         if (it->second->get_nick() == parts[1])
-//             break;
-//     }
-//     if (it == _clients.end())
-//     {
-//         send(fd, "No users were found with the given nickname!", 45, 0);
-//         return false;
-//     }
-//     if (parts[2][0] != ':')
-//     {
-//         send(fd, "no message to send to the user", 45, 0);
-//         return false;
-//     }
-    
-//     Client *sender = _clients[fd];
-
-//     std::string prefix = ":" + sender->get_nick() + "!" + sender->get_user() + "@" + sender->get_hostname();
-//     std::string full = prefix + " PRIVMSG " + parts[1] + " " + parts[2] + "\r\n";
-// 	std::string delim = ";";
-// 	std::vector<std::string> splitstr = split(parts[2], delim);
-// 	std::string sendit = "";
-// 	for (std::vector<std::string>::iterator it = splitstr.begin(); it != splitstr.end(); ++it)
-// 	{
-// 		full = prefix + " PRIVMSG " + parts[1] + " " + parts[2] + "\r\n";
-// 		if ((*it)[0] == '#' || (*it)[0] == '&')
-// 		{
-// 			sendit = full.insert(full.find("PRIVMSG ") + strlen("PRIVMSG "), *it);
-// 			// da fare con check (manda in canale specifico)
-// 		}
-// 		else
-// 		{
-// 			sendit = full.insert(full.find("PRIVMSG ") + strlen("PRIVMSG "), *it);
-// 			if (find_by_nick(*it) == NULL)
-// 			{
-// 				_clients[fd]->send_message(_clients[fd]->get_nick() + " " + *it + " No user found with given nick\n", fd);
-// 				continue;
-// 			}
-// 			if (!this->find_by_nick(*it)->send_message(sendit, fd))
-// 				return false;
-			
-// 		}
-// 		sendit = "";
-// 	}
-// 	return (true);
-// 	// // send(it->first, full.c_str(), full.size(), 0);
-// }
-
-
+bool	Server::send_to_channel(int fd, std::string recipient, std::vector<std::string> parts)
+{
+	Channel	*receiver = find_channel_name(recipient);
+	if (!receiver)
+	{
+		std::string err = "401 " + recipient + " :No such channel\r\n";
+		send(fd, err.c_str(), err.size(), 0);
+		return false;
+	}
+    std::vector<std::string> clients = receiver->get_clients();
+	if (!_clients[fd]->isInChannel(receiver->get_name())) //controlla se client e' nel canale
+	{
+		_clients[fd]->send_message(":irc 442 " + _clients[fd]->get_nick() + " :You're not on that channel", fd);
+		return false;
+	}
+	for (std::map<int, Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+	{
+		std::string name = it->second->get_nick();
+		if (name != _clients[fd]->get_nick())
+			if (!this->find_by_nick(name)->send_message(parts[2], fd))
+				return (false);
+	}
+}
 
 bool Server::privMsg(int fd, std::vector<std::string> parts)
 {
@@ -176,16 +142,20 @@ bool Server::privMsg(int fd, std::vector<std::string> parts)
     // parts[1] is the recipient's nickname/channel
     std::string recipient = parts[1];
     
+	if (recipient[0] == '#' || recipient[0] == '#')
+	{
+		if (!send_to_channel(fd, recipient, parts))
+			return false;
+	}
     // 2. Find the recipient (this is your existing find logic, or use a better lookup)
-    Client *receiver = find_by_nick(recipient); // Assuming you have a helper function
+    Client *receiver = find_by_nick(recipient);
 	
     
     if (!receiver)
     {
-        // Use an appropriate IRC numeric reply
-		std::string err = "401 " + recipient + " :No such nick/channel\r\n";
-        send(fd, err.c_str(), err.size(), 0); // Example: ERR_NOSUCHNICK (401)
-        return false;
+		std::string err = "401 " + recipient + " :No such nick\r\n";
+		send(fd, err.c_str(), err.size(), 0);
+		return false;
     }
     
     // 3. Construct the full message
