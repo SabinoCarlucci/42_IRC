@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 12:05:11 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/17 18:04:27 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/18 14:49:47 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,4 +70,9 @@ Channel *Client::isInChannel(std::string name)
 		}
 	}
 	return NULL;
+}
+
+void	Client::add_client_pointer(Channel *channel)
+{
+	_channels.push_back(channel);
 }

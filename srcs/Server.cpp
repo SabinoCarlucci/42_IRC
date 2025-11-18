@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 13:38:41 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/19 17:24:23 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/19 17:27:07 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,11 +104,11 @@ Client  *Server::find_by_nick(std::string &name)
 
 Channel  *Server::find_channel_name(std::string &name)
 {
-    std::vector<Channel *>::iterator it = _channels.begin();
+    std::map<std::string, Channel *>::iterator it = _channels.begin();
     for (; it != _channels.end(); ++it)
     {
-        if ((*it)->get_name() == name)
-            return ((*it));
+        if (it->second->get_name() == name)
+            return (it->second);
     }
     return (NULL);
 }

@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/16 11:00:25 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/18 10:47:07 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/18 15:16:17 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,9 @@ void Server::command_map()
 	_commands["USER"] = &Server::user;
 	_commands["QUIT"] = &Server::quit;
 	_commands["PRIVMSG"] = &Server::privMsg;
+	_commands["privmsg"] = &Server::privMsg;
+	_commands["JOIN"] = &Server::join;
+	_commands["NAMES"] = &Server::names;
 }
 
 bool Server::handle_command(int fd, const std::vector<std::string> &line)
@@ -105,37 +108,11 @@ bool	Server::quit(int fd, std::vector<std::string> vect)
 	return (true);
 }
 
-bool	Server::send_to_channel(int fd, std::string recipient, std::vector<std::string> parts)
-{
-	Channel	*receiver = find_channel_name(recipient);
-	if (!receiver)
-	{
-		std::string err = "401 " + recipient + " :No such channel\r\n";
-		send(fd, err.c_str(), err.size(), 0);
-		return false;
-	}
-    std::vector<std::string> clients = receiver->get_clients();
-	if (!_clients[fd]->isInChannel(receiver->get_name())) //controlla se client e' nel canale
-	{
-		_clients[fd]->send_message(":irc 442 " + _clients[fd]->get_nick() + " :You're not on that channel", fd);
-		return false;
-	}
-	for (std::map<int, Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
-	{
-		std::string name = it->second->get_nick();
-		if (name != _clients[fd]->get_nick())
-			if (!this->find_by_nick(name)->send_message(parts[2], fd))
-				return (false);
-	}
-	return (true);
-}
-
 bool Server::privMsg(int fd, std::vector<std::string> parts)
 {
     // 1. Check for parameters (needs target and message)
     if (parts.size() < 3 || parts[2][0] != ':')
     {
-        // Use an appropriate IRC numeric reply instead of a custom string
         send(fd, "412 :No text to send\r\n", 22, 0); // Example: ERR_NOTEXTTOSEND (412)
         return false;
     }
@@ -144,34 +121,71 @@ bool Server::privMsg(int fd, std::vector<std::string> parts)
     std::string recipient = parts[1];
     
 	if (recipient[0] == '#' || recipient[0] == '#')
-	{
-		if (!send_to_channel(fd, recipient, parts))
-			return false;
-	}
+		return (send_to_channel(fd, recipient, parts));
+
     // 2. Find the recipient (this is your existing find logic, or use a better lookup)
     Client *receiver = find_by_nick(recipient);
-	
-    
     if (!receiver)
     {
 		std::string err = "401 " + recipient + " :No such nick\r\n";
 		send(fd, err.c_str(), err.size(), 0);
 		return false;
     }
-    
     // 3. Construct the full message
     Client *sender = _clients[fd];
     std::string prefix = ":" + sender->get_nick() + "!" + sender->get_user() + "@" + sender->get_hostname();
-    
     // Send the message as originally received to the recipient
     std::string full_message = prefix + " PRIVMSG " + recipient + " " + parts[2] + "\r\n";
-    
     // 4. Send the message
     if (!receiver->send_message(full_message, receiver->get_client_fd())) // Pass the receiver's FD
-    {
-        // Handle error if sending failed
-        return false;
-    }
-    
+    	return false;
+	    
     return true;
+}
+
+bool	Server::join(int fd, std::vector<std::string> parts)
+{
+	if (parts.size() < 2 || parts[1][0] != '#')
+	{
+		send(fd, " :No channel to join\r\n", 26, 0);
+		return (false);
+	}
+	std::string key;
+	if (parts.size() > 2)
+		key = parts[2];
+	else
+		key = "";
+	std::string joinChannel = parts[1];
+	Client *sender = _clients[fd];
+
+	Channel *receiver = find_channel_name(joinChannel);
+	if (!receiver)
+	{
+		add_channel(joinChannel);
+		Channel	*new_channel = _channels[joinChannel];
+		new_channel->add_clients(_clients[fd]->get_nick());
+		_clients[fd]->add_client_pointer(new_channel);
+		std::string full = ":" + sender->get_nick() + "!" + sender->get_user() + "@" + sender->get_hostname() + " JOIN :" + joinChannel + "\r\n";
+		send_to_channel(fd, joinChannel, full);
+		sender->send_message(full, fd);
+		names(fd, parts);
+	}
+	else
+	{
+		Client *sender = _clients[fd];
+    	if (sender->isInChannel(joinChannel) != NULL)
+    	    return (true);
+		receiver->add_clients(sender->get_nick()); 
+		sender->add_client_pointer(receiver);
+		std::string full_join_msg = ":" + sender->get_nick() + "!" + sender->get_user() + "@" + sender->get_hostname() + " JOIN :" + joinChannel + "\r\n";
+		
+    	send_to_channel(fd, joinChannel, full_join_msg); 
+		
+    	std::string topic_reply = ":irc 332 " + sender->get_nick() + " " + joinChannel + " :The Topic of the Channel\r\n";
+    	sender->send_message(topic_reply, fd);
+		
+    	// 7. Send NAMES (353 and 366)
+    	names(fd, parts);
+	}
+	return (true);
 }

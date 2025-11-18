@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 11:42:06 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/17 18:02:57 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/18 14:51:45 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,8 @@ public:
 
     bool send_message(std::string message, int fd);
     Channel *isInChannel(std::string name);
+
+    void    add_client_pointer(Channel *channel);
 };
 
 #endif
