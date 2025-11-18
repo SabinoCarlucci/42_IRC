@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 11:46:27 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/19 17:25:51 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/19 17:28:21 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 #include <vector>
 #include <map>
 #include <poll.h>
+#include <iostream>
 #include <stdio.h>
 #include <errno.h>
 #include <sstream>
@@ -69,7 +70,7 @@ public:
     void    accept_new_connection();
     void    close_client(int idx); // index in _pfds
     bool    send_to_channel(int fd, std::string recipient, std::vector<std::string> parts);
-    bool    send_to_channel(int fd, std::string recipient, std::string msg);
+    bool    send_to_channel(int fd, std::string &recipient, std::string &msg, bool raw);
     
     // broadcast
     void broadcast_from(int sender_fd, const std::string &msg);

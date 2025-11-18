@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/16 11:00:25 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/18 15:16:17 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/18 16:52:19 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -166,8 +166,7 @@ bool	Server::join(int fd, std::vector<std::string> parts)
 		new_channel->add_clients(_clients[fd]->get_nick());
 		_clients[fd]->add_client_pointer(new_channel);
 		std::string full = ":" + sender->get_nick() + "!" + sender->get_user() + "@" + sender->get_hostname() + " JOIN :" + joinChannel + "\r\n";
-		send_to_channel(fd, joinChannel, full);
-		sender->send_message(full, fd);
+		send_to_channel(fd, joinChannel, full, true);
 		names(fd, parts);
 	}
 	else
@@ -177,12 +176,10 @@ bool	Server::join(int fd, std::vector<std::string> parts)
     	    return (true);
 		receiver->add_clients(sender->get_nick()); 
 		sender->add_client_pointer(receiver);
-		std::string full_join_msg = ":" + sender->get_nick() + "!" + sender->get_user() + "@" + sender->get_hostname() + " JOIN :" + joinChannel + "\r\n";
-		
-    	send_to_channel(fd, joinChannel, full_join_msg); 
-		
+		std::string full = ":" + sender->get_nick() + "!" + sender->get_user() + "@" + sender->get_hostname() + " JOIN :" + joinChannel + "\r\n";
+    	send_to_channel(fd, joinChannel, full, true);
     	std::string topic_reply = ":irc 332 " + sender->get_nick() + " " + joinChannel + " :The Topic of the Channel\r\n";
-    	sender->send_message(topic_reply, fd);
+		sender->send_message(topic_reply, fd);
 		
     	// 7. Send NAMES (353 and 366)
     	names(fd, parts);

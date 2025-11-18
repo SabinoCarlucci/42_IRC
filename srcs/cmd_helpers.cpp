@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/18 11:32:37 by negambar          #+#    #+#             */
-/*   Updated: 2025/11/18 15:11:16 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/18 16:49:13 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,7 @@ bool Server::send_to_channel(int fd, std::string recipient, std::vector<std::str
 	    std::string nick_name = *nick_it;
 	    Client *client = find_by_nick(nick_name); 
 	
-	    if (client)
+	    if (client != _clients[fd])
 	    {
 	        if (!client->send_message(full_message, client->get_client_fd()))
 	            return false;
@@ -80,30 +80,51 @@ bool Server::send_to_channel(int fd, std::string recipient, std::vector<std::str
     return true;
 }
 
-bool	Server::send_to_channel(int fd, std::string recipient, std::string parts)
+bool Server::send_to_channel(int fd, std::string &recipient, std::string &msg, bool raw)
 {
-	Channel	*receiver = find_channel_name(recipient);
-	if (!receiver)
-	{
-		std::string err = "401 " + recipient + " :No such channel\r\n";
-		send(fd, err.c_str(), err.size(), 0);
-		return false;
-	}
+    Channel *receiver = find_channel_name(recipient);
+    Client  *sender   = _clients[fd];
+
+    if (!receiver)
+    {
+        std::string err = ":irc 401 " + sender->get_nick() +
+                          " " + recipient + " :No such channel\r\n";
+        send(fd, err.c_str(), err.size(), 0);
+        return false;
+    }
+
+    if (sender->isInChannel(receiver->get_name()) == NULL)
+    {
+        std::string err = ":irc 442 " + sender->get_nick() +
+                          " " + recipient + " :You're not on that channel\r\n";
+        sender->send_message(err, fd);
+        return false;
+    }
+    std::string prefix = ":" + sender->get_nick() + "!" +
+                         sender->get_user() + "@" +
+                         sender->get_hostname();
+
+    std::string outgoing;
+
+    if (raw)
+		outgoing = msg;
+    else
+        outgoing = prefix + " PRIVMSG " + recipient + " :" + msg + "\r\n";
+
     std::vector<std::string> clients = receiver->get_clients();
-	if (!_clients[fd]->isInChannel(receiver->get_name())) //controlla se client e' nel canale
-	{
-		_clients[fd]->send_message(":irc 442 " + _clients[fd]->get_nick() + " :You're not on that channel", fd);
-		return false;
-	}
-	for (std::map<int, Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
-	{
-		std::string name = it->second->get_nick();
-		if (name != _clients[fd]->get_nick())
-			if (!this->find_by_nick(name)->send_message(parts, fd))
-				return (false);
-	}
-	return (true);
+
+    for (size_t i = 0; i < clients.size(); ++i)
+    {
+        Client *c = find_by_nick(clients[i]);
+        if (!c) continue;
+
+        if (!c->send_message(outgoing, c->get_client_fd()))
+            return false;
+    }
+
+    return true;
 }
+
 
 void Server::add_channel(std::string name)
 {
