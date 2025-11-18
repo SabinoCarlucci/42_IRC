@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/16 11:00:25 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/17 18:34:48 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/18 10:47:07 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,7 @@ bool	Server::pass(int fd, std::vector<std::string> vect)
 	if (vect.size() >= 2 && vect[1] == _password) 
 	{
 		_clients[fd]->set_authenticated();
-		std::string reply = "Password accepted\n";
+		std::string reply = "Password accepted\r\n";
 		send(fd, reply.c_str(), reply.size(), 0);
 		return (true);
 	} 
@@ -127,6 +127,7 @@ bool	Server::send_to_channel(int fd, std::string recipient, std::vector<std::str
 			if (!this->find_by_nick(name)->send_message(parts[2], fd))
 				return (false);
 	}
+	return (true);
 }
 
 bool Server::privMsg(int fd, std::vector<std::string> parts)

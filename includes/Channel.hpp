@@ -20,10 +20,10 @@ class Channel
         std::string _pass;
         std::vector<std::string> _clients;
     public:
-        std::string get_name();
-        std::string get_pass();
-        std::vector<std::string> get_clients();
-        bool        send_message(std::string message, int fd);
+        std::string                 get_name();
+        std::string                 get_pass();
+        std::vector<std::string>    get_clients();
+        bool                        send_message(std::string message, int fd);
 };
 
 
