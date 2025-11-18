@@ -1,0 +1,150 @@
+FUNZIONI PERMESSE:
+    socket, close, setsockopt, getsockname,
+    getprotobyname, gethostbyname, getaddrinfo,
+    freeaddrinfo, bind, connect, listen, accept, htons,
+    htonl, ntohs, ntohl, inet_addr, inet_ntoa, send,
+    recv, signal, sigaction, lseek, fstat, fcntl, poll
+    (or equivalent)
+
+COSA FANNO:
+
+SELECT : alternativa di poll() **si ritrova nell'esame 06** : offre un modo di monitorare socket multipli ed altri fd in simultanea per vedere se sono pronti per input/output/gestione dell'errore
+	CINQUE ARGOMENTI:
+	- nfds : int : il numero piu grande degli FD (+1) in uso
+	- readfds : fd_set *: serie di fd per controllare dati da *leggere*
+	- writefds : fd_set *: serie di fd per controllare se son pronti o meno per *essere scritti*
+	- exceptfds : fd_set *: set di FD per controllare eccezioni in entrata (dati di errori/out-of-band)
+	- timeout : struct timeval *: struttura che specifica quanto aspettare prima di fare return (puo' essere impostato a per sempre, immediatamente, o un tempo specifico)
+	
+	DIFFERENZE CON poll():
+	+ usa tre bitmasks diverse, mentre poll usa un array singolo di struct pollfd
+	+ fd_set ha un limite fisso, definito dal sistema, di fd che puoi monitorare (alla volta?)
+	+ la funzione deve ricostruire e analizzare la bitmask dopo ogni chiamata, mentre pool() controlla solo gli elementi dell'array che gli fornisci te.
+	+ accessibile quasi ovunque, mentre pool() e' piu' nuova disponibile su unix/linux
+
+socket : ritorna un fd pronto a comunicare tramite IPv4
+            e le regole di connessione di TCP
+        TRE ARGOMENTI: 
+        - domain : indirizzi IP (IPv4)
+        - type : 
+            + SOCK_STREAM: TCP (transmission control protocol), connessione affidabile, stream basato sulla connessione
+            + SOCK_DGRAM: UDP (User Datagram Protocol), senza connessione, veloce ma inaffidabile
+        - protocol : quale protocollo della famiglia/tipo, spesso settato a 0 per il protocollo default del dominio specificato e tipo
+
+close : Si assicura che tutti i dati rimanenti siano mandati e ricevuti prima di chiudere la connessione
+        Rilascia l'fd (lo rende invalido per ricevere/mandare dati)
+        chiude e disconnette l'endpoint della comunicazione.
+        il Sistema Operativo (OS) libera memoria e le risorse interne allocate per il socket.
+
+setsockopt : configura comportamenti/opzioni per un socket dato
+            CINQUE ARGOMENTI:
+            - socket : fd del socket da modificare
+            - level : specifica CHI definisca l'opzione da cambiare:
+                + SOL_SOCKET : (la piu comune) impostazione di socket-level generale
+                + IPPROTO_TCP : applica al protocollo TCP
+                + IPPROTO_IP : applica al protocollo IP
+            - option_name : impostazione (specifica) da cambiare
+            - option\_value : puntatore al nuovo valore che vuoi dare all'opzione
+
+getsockname : ottiene l'indirizzo locale e il numero del port assegnato al socket
+
+getprotobyname : cerca il protocollo network per nome, ed ottiene l'identificatore di protocollo numerico
+                UN ARGOMENTO:
+                    -name: nome del protocollo da trovare
+                ritorna un puntatore alla struct protoent
+gethostbyname : cerca il protocollo network per host name
+                UN ARGOMENTO:
+                    - hostname : puntatore a stringa che contiene il nome dell'host (e.g "gemini.google.com")
+                
+getaddrinfo :   "Successore" di gethostbyname, modo piu robusto per cercare indirizzi network
+                DUE ARGOMENTI:
+                    - name: hostname
+                    - serv_name: (opzionale) nome del servizio (come http) o port (tipo 80)
+                gestisce IPv4 e IPv6, include informazioni riguardo il Port/servizio, 
+                usa memoria allocata dinamicamente e ritorna una struttura "pronta all'uso" (struct addrinfo)
+
+freeaddrinfo :  usato per pulizia della memoria occupata da getaddrinfo()
+                UN ARGOMENTO:
+                    -ptr : puntatore alla cima della struttura addrinfo
+
+bind :  assegna un indirizzo network locale e un port ad un socket che hai appena creato
+        TRE ARGOMENTI:
+            -socket : l'fd del socket a cui vuoi assegnare un'indirizzo
+            -address : puntatore alla struttura sockaddr(_in o sockaddr_in6) che contiene l'IP locale desiderato e port
+            -address_len
+
+connect : usato per stabilire una connessione attiva ad un indirizzo remoto e port
+          TRE ARGOMENTI:
+            -socket
+            -address
+            -address_len
+
+listen : fa aspettare al server una richiesta di connessione in entrata
+        DUE ARGOMENTI:
+            - socket : FD del socket del server che deve "essere in ascolto"
+            - backlog : Numero massimo di connessioni in entrata che l'OS preparare per il server
+
+accept : usato dal server per prendere una connessione in entrata e creare un socket nuovo, dedicato a quel client
+        TRE ARGOMENTI:
+            - socket
+            - address : punta a sockaddr, dove OS scrive l'indirizzo remoto e il port del client che si e' appena collegato
+            - address_len
+
+htons (Host to Network Short): gestisce il modo in cui vengono salvati i dati, SPECIFICATAMENTE i numeri da 2byte.
+        converte un short int (host byte order) in network byte order
+        UN ARGOMENTO:
+            - hostshort : (uint16_t(short unsigned integer)) da convertire in numero network byte order
+
+htonl : gestisce il modo in cui vengono salvati i dati, SPECIFICATAMENTE i numeri da 4 byte.
+        converte un long int (host byte order) in network byte order
+        UN ARGOMENTO:
+            - hostlong : (uint32_t(long unsigned integer)) da convertire in numero network byte order
+
+ntohs : converte short integers (questa volta Network byte order) nel host byte order del computer
+        UN ARGOMENTO:
+            - netshort (uint16_t)
+
+ntohl : converte long integers (questa volta Network byte order) nel host byte order del computer
+        UN ARGOMENTO:
+            - netlong (uint32_t)
+
+inet_addr : converte indirizzi IP ("human-readable") in un numero binario da 32bit, utilizzabile per le funzioni di networking
+            UN ARGOMENTO:
+                - cp: puntatore const ad una string NULL terminated che contiene l'indirizzo IPv4 nell'annotazione standard dotted-decimal notation (e.g "192.168.1.1")
+
+inet_ntoa : converte un indirizzo 32-bit IPv4 nel proprio corrispondente dotted-decimal
+	UN ARGOMENTO:
+		- in : struct in_addr : struttura che contiene un indirizzo da 32bit IPv4 che DEVE essere in NETWORK BYTE ORDER
+	
+	non e' thread-safe
+
+send : usato per trasmettere dati in un socket connesso.
+	QUATTRO ARGOMENTI:
+	- socket : int : FD del socket connesso
+	- buffer : const void * : puntatore al blocco di dati da mandare
+	- len : size_t : byte da mandare dal buffer
+	- flags : int : controlli OPZIONALI per come mandare i dati
+
+
+recv : legge i dati in entrata da un socket connesso.
+	QUATTRO ARGOMENTI:
+	- socket : int : fd del socket connesso
+	- buffer : void *: puntatore a memoria dove i dati in arrivo sono salvati
+	- len : size_t : numero massimo di byte che il buffer puo' tenere
+	- flags : int : controlli OPZIONALI per come i dati sono ricevuti
+
+fstat : usato per ottenere informazioni (metadata) dettagliate associate al fd.
+	DUE ARGOMENTI:
+	- fildes : int : fd del file/socket di cui si vogliono informazioni
+	- buf : struct stat* : un puntatore ad un struct stat cui funzione riempira' con i dati ottenuti.
+
+fcntl : usato per manipolare o controllare un fd aperto.
+	TRE ARGOMENTI:
+	- fd : int
+	- cmd : int : operazione da eseguire
+	- ... : varia : terzo argomento opzionale cui funzione cambia in base all'operazione (cmd)
+	
+
+
+
+

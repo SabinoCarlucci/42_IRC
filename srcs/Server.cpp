@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 13:38:41 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/17 16:40:04 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/18 18:10:00 by scarlucc         ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 
 #include "../includes/Server.hpp"
@@ -170,90 +170,39 @@ void Server::handle_client_read(int idx)
         while ((pos = b.find('\n')) != std::string::npos) {
             std::string line = b.substr(0, pos + 1);
             // remove trailing \r and \n
-			std::size_t last;//trova posizione di ultimo \n o \r
-            while (!line.empty() && ((line.size() - 1) == (last = line.find_last_of("\n\r"))))
+			std::size_t last;
+            while (!line.empty() && ((line.size() - 1) == (last = line.find_last_of("\n\r"))))//trova posizione di ultimo \n o \r
 				line.erase(line.size() - 1);//se ultimo \r o \n e' a fine stringa, rimuovi ultimo carattere stringa
 
             if (!line.empty()) {
-				std::cout << "line = " << line <<std::endl;
-				//const char *s = line.c_str();//per vedere in debug
-                std::cout << "[RECV fd=" << fd << "] " << line << std::endl;
+				std::cout << "[RECV fd=" << fd << "] " << line << std::endl;
                 // minimal parsing: split at space
                 std::vector<std::string> parts = split2(line, ' ', line.find(":"));
                 if (!parts.empty()) {
-                    bool ret = handle_command(fd, parts);
-                    if (!ret)
-                        send(fd, "ciao\n", 6, 0);
-                    // else
-                    //     return;
-                    //std::string cmd = parts[0];
-                    /* if (cmd == "PASS") {
-					    std::string cl_psw = parts[1];
-						if (cl_psw)
-                        if (parts.size() >= 2 && parts[1] == _password) {
-                            _clients[fd]->set_authenticated();
-                            std::string reply = "Password accepted";
-                            send(fd, reply.c_str(), reply.size(), 0);
-                        } else {
-                            std::string reply = "Password wrong";
-                            send(fd, reply.c_str(), reply.size(), 0);
-                        }
-                    } else if (cmd == "NICK") {
-                        if (parts.size() >= 2) {
-                            std::map<int, Client *>::iterator it = _clients.begin();
-                            for (; it != _clients.end(); ++it)
-                            {
-                                if (it->first != fd && it->second->get_nick() == parts[1])
-                                {
-                                    send(fd, "Nickname already taken\n", 23, 0);
-                                    break;
-                                }
-                            }
-                            if (it == _clients.end())
-                            {
-                            _clients[fd]->set_nick(parts[1]);
-                            std::string reply = "Nickname set to " + parts[1] + "\n";
-                            send(fd, reply.c_str(), reply.size(), 0);
-                            }
-                        }
-                    } else if (cmd == "USER") {
-                        if (parts.size() >= 2) {
-                            _clients[fd]->set_user(parts[1]);
-                            std::string reply = "User set to " + parts[1] + "\n";
-                            send(fd, reply.c_str(), reply.size(), 0);
-                        }
-                    } else if (cmd == "QUIT") {
-                        std::string goodbye = "Goodbye\n";
-                        send(fd, goodbye.c_str(), goodbye.size(), 0);
-                        close_client(idx);
-                        return;
-                    } else {
-                        // broadcast simple message to others
-						std::string fd_to_string;
-						std::ostringstream convert;
-						convert << fd;
-						fd_to_string = convert.str();
-                        std::string msg = "[" + (_clients[fd]->get_nick().empty() ? fd_to_string : _clients[fd]->get_nick()) + "]: " + line + "\n";
-                        broadcast_from(fd, msg);
-                    } */
+                    
+					handle_command(fd, parts);
+                    /*  if (!ret)
+                        send(fd, "ciao\n", 6, 0);  */
                 }
             }
             b.erase(0, pos + 1);
         }
     }else if (n == 0) {
         std::cout << "Client fd=" << fd << " disconnected\n";
-        close_client(idx);
+        close_client(fd);
     } else {
         perror("recv");
-        close_client(idx);
+        close_client(fd);
     }
 }
 
-void Server::close_client(int idx)
+void Server::close_client(int fd)
 {
     if (idx >= (int)_pfds.size()) return;
-    int fd = _pfds[idx].fd;
+    //int fd = _pfds[idx].fd;
     // remove from pfds
+	struct pollfd fd_to_erase = _pfds.find(_pfds.begin(), _pfds.end(), fd);
+	
     _pfds.erase(_pfds.begin() + idx);
     // delete client object and close fd
     std::map<int, Client*>::iterator it = _clients.find(fd);

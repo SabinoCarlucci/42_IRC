@@ -1,0 +1,33 @@
+
+
+- doppi messaggi
+  - messaggi con \n di troppo
+
+- server crash quando client si disconnette con ^C
+
+COMPORTAMENTO ATTESO:
+  con netcat digito un messaggio e premo invio:
+
+  chi ha digitato il messaggio vede il messaggio digitato, poi a capo vede "You said: messaggio digitato"
+
+  il messaggio viene visualizzato da tutti gli altri utenti come [utente]: messaggio
+
+  il server mostra [RECV fd= numero fd] messaggio
+
+ADESSO:
+  l'utente che invia il messaggio vede 
+  messaggio, 
+  a capo altro messaggio, 
+  poi You said: messaggio, 
+  a capo You said: altro messaggio
+
+  altri utenti vedono 
+  [utente]: messaggio
+  [utente]: altro messaggio
+  ma solo dopo che l'utente ha inviato il secondo messaggio
+
+  server stampa 
+  [RECV fd=numero fd] messaggio
+  [RECV fd=numero fd] aaltro messaggio
+  riga vuota
+  e poi da capo messaggio, messaggio e riga vuota

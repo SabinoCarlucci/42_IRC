@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   commands.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/16 11:00:25 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/17 16:48:38 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/17 19:05:43 by scarlucc         ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #include "../includes/Server.hpp"
 #include "../includes/Client.hpp"
@@ -22,7 +22,7 @@ void Server::command_map()
 	_commands["PRIVMSG"] = &Server::privMsg;
 }
 
-bool Server::handle_command(int fd, const std::vector<std::string> &line)
+bool Server::handle_command(int fd, const std::vector<std::string> &line)//serve ritorno booleano? e se fosse void?
 {
 	if (_commands.find(line[0]) != _commands.end())
 	{
@@ -97,8 +97,9 @@ bool	Server::user(int fd, std::vector<std::string> vect)
 
 bool	Server::quit(int fd, std::vector<std::string> vect)
 {
-	(void)vect;
 	std::string goodbye = "Goodbye\n";
+	if (vect.size() > 1)	
+		goodbye = vect[1];		
 	send(fd, goodbye.c_str(), goodbye.size(), 0);
 	close_client(fd);
 	return (true);
