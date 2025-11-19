@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 11:42:06 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/18 14:51:45 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/19 11:47:43 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 #include <poll.h>
 #include <stdio.h>
 #include <errno.h>
+#include <set>
 #include <sstream>
 
 class Channel;
@@ -62,5 +63,36 @@ public:
 
     void    add_client_pointer(Channel *channel);
 };
+
+//prints alle the information about the client
+std::ostream &operator<<(std::ostream &out, Client const &src);
+
+//prints all the client's nick in a vector
+inline std::ostream &operator<<(std::ostream &out, std::vector<Client*> clients) {
+	for (std::vector<Client*>::iterator it = clients.begin(); it != clients.end(); ++it)
+	{
+		out << " ["<<(*it)->get_nick() << "] ";
+	}
+	return out;
+}
+
+//prints all the clients in a map
+inline std::ostream &operator<<(std::ostream &o, std::map<std::string, Client*> const &v) {
+	for (std::map<std::string, Client*>::const_iterator it = v.begin(); it != v.end(); ++it)
+		o << it->first;
+
+	o << std::endl;
+	return o;
+}
+
+//prints all the clients in a set
+inline std::ostream &operator<<(std::ostream &o, std::set<std::string> const &v) {
+	for (std::set<std::string>::const_iterator it = v.begin(); it != v.end(); ++it)
+		o <<"["<< *it <<"]";
+		
+	o << std::endl;
+	return o;
+}
+
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/16 11:00:25 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/18 16:52:19 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/19 12:42:13 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@ void Server::command_map()
 	_commands["privmsg"] = &Server::privMsg;
 	_commands["JOIN"] = &Server::join;
 	_commands["NAMES"] = &Server::names;
+	_commands["MODE"] = &Server::mode;
 }
 
 bool Server::handle_command(int fd, const std::vector<std::string> &line)
@@ -185,4 +186,28 @@ bool	Server::join(int fd, std::vector<std::string> parts)
     	names(fd, parts);
 	}
 	return (true);
+}
+
+bool Server::mode(int fd, std::vector<std::string> parts)
+{
+	Client	*client = _clients[fd];
+	if (parts.size() < 2)
+	{
+		client->send_message(":irc 461 " + client->get_nick() + " MODE :Not enough parameters", fd);
+		delete	client;
+		return (false);
+	}
+	if (parts.size() == 2)
+	{
+		Channel *chan = find_channel_name(parts[1]);
+		if (chan)
+			chan->send_modes(*client, fd);
+		return (true);
+	}
+	if (parts.size() < 3) 
+		parts.push_back("");
+	if (find_by_nick(parts[1]))
+		return (true);
+	bool ret = _channels[parts[1]]->modify_mode(parts, *_clients[fd], fd);
+	return ret;
 }

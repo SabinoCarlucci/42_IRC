@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 11:46:27 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/19 17:28:21 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/19 17:30:40 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,7 +82,8 @@ public:
 	bool	user(int fd, std::vector<std::string> vect);
 	bool	quit(int fd, std::vector<std::string> vect);
     bool    join(int fd, std::vector<std::string> vect);
-    bool    names(int fd, std::vector<std::string> parts);
+    bool    names(int fd, std::vector<std::string> name);
+    bool    mode(int fd, std::vector<std::string> parts);
 };
 
 #endif
