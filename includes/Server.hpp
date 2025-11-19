@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 11:46:27 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/17 16:39:22 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/19 12:52:47 by scarlucc         ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #ifndef SERVER_HPP
 #define SERVER_HPP
@@ -59,7 +59,7 @@ public:
 
     // internal actions
     void accept_new_connection();
-    void handle_client_read(int idx); // idx = index in _pfds
+    void handle_client_read(int fd);
     void close_client(int idx); // index in _pfds
 
     // broadcast
