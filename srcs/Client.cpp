@@ -6,11 +6,12 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 12:05:11 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/17 16:11:01 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/18 14:49:47 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Client.hpp"
+#include "../includes/Channel.hpp"
 
 Client::Client(int fd)
 : _fd(fd),
@@ -56,4 +57,22 @@ bool Client::send_message(std::string message, int fd)
 		return false;
 	}
 	return true;
+}
+
+Channel *Client::isInChannel(std::string name)
+{
+	std::vector<Channel *>::iterator it = _channels.begin();
+	for (; it != _channels.end(); ++it)
+	{
+		if ((*it)->get_name() == name)
+		{
+			return (*it);
+		}
+	}
+	return NULL;
+}
+
+void	Client::add_client_pointer(Channel *channel)
+{
+	_channels.push_back(channel);
 }
