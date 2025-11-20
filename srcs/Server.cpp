@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 13:38:41 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/19 17:27:07 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/20 17:56:47 by scarlucc         ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 
 #include "../includes/Server.hpp"
@@ -286,10 +286,13 @@ std::vector<std::string> Server::split2(std::string str, char c, size_t pos)
             vect.push_back(str.substr(i));
             return (vect);
         }
-        vect.push_back(str.substr(i, found - i));
+		std::string sub = str.substr(i, found - i);
+		if (sub[0] && sub[0] != c)
+        	vect.push_back(sub);
         i = found + 1;
     }
     if (i < str.size())
         vect.push_back(str.substr(i));
     return (vect);
 }
+
