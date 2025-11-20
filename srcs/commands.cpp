@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   commands.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/16 11:00:25 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/20 13:18:34 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/24 16:52:19 by scarlucc         ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #include "../includes/Server.hpp"
 #include "../includes/Channel.hpp"
@@ -104,6 +104,8 @@ bool	Server::user(int fd, std::vector<std::string> vect)
 bool	Server::quit(int fd, std::vector<std::string> vect)
 {
 	(void)vect;
+	//Client *client = _clients[fd];//per accedere alle funzioni di client
+	
 	std::string goodbye = "Goodbye\n";
 	send(fd, goodbye.c_str(), goodbye.size(), 0);
 	close_client(fd);
