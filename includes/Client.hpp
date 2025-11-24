@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 11:42:06 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/19 11:47:43 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/20 11:10:44 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <set>
+#include <algorithm>
 #include <sstream>
 
 class Channel;
