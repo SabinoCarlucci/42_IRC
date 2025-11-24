@@ -6,7 +6,7 @@
 /*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 13:38:41 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/24 15:25:29 by scarlucc         ###   ########.fr       */
+/*   Updated: 2025/11/24 16:55:42 by scarlucc         ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -27,8 +27,8 @@ Server::Server(int port, const std::string &password)
 {
     _server_fd = make_server_socket(_port);
     if (_server_fd < 0) {
-        std::cerr << "Failed to create server socket\n";
-        throw std::runtime_error("socket");
+        //std::cerr << "Failed to create server socket\n"; //ridondante usare sia questo che throw
+        throw std::runtime_error("Failed to create server socket");
     }
 
     struct pollfd p;
@@ -61,7 +61,7 @@ int Server::set_nonblocking(int fd) {
 
 int Server::make_server_socket(int port) {
     int srv = socket(AF_INET, SOCK_STREAM, 0);
-    if (srv < 0) { perror("socket"); return -1; }
+    if (srv < 0) { std::cerr << "socket in make_server_socket" << std::endl; return -1; }
 
     int opt = 1;
     setsockopt(srv, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
@@ -72,9 +72,9 @@ int Server::make_server_socket(int port) {
     addr.sin_addr.s_addr = INADDR_ANY;
     addr.sin_port = htons(port);
 
-    if (bind(srv, (struct sockaddr*)&addr, sizeof(addr)) < 0) { perror("bind"); close(srv); return -1; }
-    if (listen(srv, 10) < 0) { perror("listen"); close(srv); return -1; }
-    if (set_nonblocking(srv) < 0) { perror("set_nonblocking"); close(srv); return -1; }
+    if (bind(srv, (struct sockaddr*)&addr, sizeof(addr)) < 0) { std::cerr << "bind in make_server_socket" << std::endl; close(srv); return -1; }
+    if (listen(srv, 10) < 0) { std::cerr << "listen in make_server_socket" << std::endl; close(srv); return -1; }
+    if (set_nonblocking(srv) < 0) { std::cerr << "set_nonblocking in make_server_socket" << std::endl; close(srv); return -1; }
 
     return srv;
 }
@@ -119,7 +119,7 @@ void Server::run()
         int rv = poll(_pfds.empty() ? NULL : &_pfds[0], _pfds.size(), -1);
         if (rv < 0) {
             if (errno == EINTR) continue;
-            perror("poll");
+            std::cerr << "poll in run()" << std::endl;
             break;
         }
         // handle events
@@ -164,11 +164,11 @@ void Server::accept_new_connection()
     int client_fd = accept(_server_fd, (struct sockaddr*)&cli_addr, &cli_len);
     if (client_fd < 0) {
         if (errno == EAGAIN || errno == EWOULDBLOCK) return;
-        perror("accept");
+        std::cerr << "accept in accept_new_connection()" << std::endl;
         return;
     }
     if (set_nonblocking(client_fd) < 0) {
-        perror("set_nonblocking(client)");
+		std::cerr << "set_nonblocking(client) in accept_new_connection()" << std::endl;
         close(client_fd);
         return;
     }
@@ -226,7 +226,7 @@ void Server::handle_client_read(int fd)
         std::cout << "Client fd=" << fd << " disconnected\n";
         close_client(fd);//serve resettare eventi con _pfds[i].revents = 0; ???
     } else {
-        perror("recv");
+		std::cerr << "recv in handle_client_read()" << std::endl;
         close_client(fd);
     }
 }
