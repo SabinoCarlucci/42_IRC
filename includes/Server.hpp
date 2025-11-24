@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 11:46:27 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/19 17:30:40 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/20 11:26:06 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <sstream>
+#include <algorithm>
 
 class Client;
 class Channel;
@@ -70,7 +71,7 @@ public:
     void    accept_new_connection();
     void    close_client(int idx); // index in _pfds
     bool    send_to_channel(int fd, std::string recipient, std::vector<std::string> parts);
-    bool    send_to_channel(int fd, std::string &recipient, std::string &msg, bool raw);
+    bool    send_to_channel(int fd, std::string recipient, std::string msg, bool raw);
     
     // broadcast
     void broadcast_from(int sender_fd, const std::string &msg);
@@ -84,6 +85,7 @@ public:
     bool    join(int fd, std::vector<std::string> vect);
     bool    names(int fd, std::vector<std::string> name);
     bool    mode(int fd, std::vector<std::string> parts);
+    bool    invite(int fd, std::vector<std::string> parts);
 };
 
 #endif

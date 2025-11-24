@@ -2,7 +2,7 @@
 #include "../includes/Server.hpp"
 #include "../includes/Client.hpp"
 
-Channel::Channel(std::string name/* , Server *server */)/*  : serv(server) */
+Channel::Channel(std::string name, Server *server)  : serv(server) 
 {
 	_name = name;
 	_modes['i'] = false;
@@ -13,20 +13,20 @@ Channel::Channel(std::string name/* , Server *server */)/*  : serv(server) */
 	_modes['b'] = false;
 
 
-/* 	_mode_funcs['i'] = &Channel::modify_invite;
+ 	_mode_funcs['i'] = &Channel::modify_invite;
 	_mode_funcs['t'] = &Channel::modify_topic;
-	_mode_funcs['k'] = &Channel::modify_key;
+/*	_mode_funcs['k'] = &Channel::modify_key;
 	_mode_funcs['o'] = &Channel::modify_op;
 	_mode_funcs['l'] = &Channel::modify_limit;
 	_mode_funcs['b'] = &Channel::modify_ban; */
 }
 
-std::string Channel::get_name()
+std::string Channel::get_name() const
 {
     return (_name);
 }
 
-std::string Channel::get_pass()
+std::string Channel::get_pass() const
 {
     return (_pass);
 }
@@ -41,9 +41,23 @@ bool Channel::send_message(std::string message, int fd)
 	return true;
 }
 
-std::vector<std::string> Channel::get_clients()
+const std::vector<std::string> &Channel::get_clients() const
 {
 	return (_clients);
+}
+
+bool    Channel::is_op(std::string client)
+{
+    if (_ops.find(client) != _ops.end())
+        return (true);
+    return (false);
+}
+
+bool    Channel::is_ban(std::string name)
+{
+    if (_bans.find(name) != _bans.end())
+        return (true);
+    return (false);
 }
 
 

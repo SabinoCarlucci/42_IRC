@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/18 11:32:37 by negambar          #+#    #+#             */
-/*   Updated: 2025/11/18 16:49:13 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/21 11:18:45 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,11 +80,13 @@ bool Server::send_to_channel(int fd, std::string recipient, std::vector<std::str
     return true;
 }
 
-bool Server::send_to_channel(int fd, std::string &recipient, std::string &msg, bool raw)
+bool Server::send_to_channel(int fd, std::string recipient, std::string msg, bool raw)
 {
     Channel *receiver = find_channel_name(recipient);
     Client  *sender   = _clients[fd];
 
+	if (!sender)
+		return (false);	
     if (!receiver)
     {
         std::string err = ":irc 401 " + sender->get_nick() +
@@ -121,7 +123,6 @@ bool Server::send_to_channel(int fd, std::string &recipient, std::string &msg, b
         if (!c->send_message(outgoing, c->get_client_fd()))
             return false;
     }
-
     return true;
 }
 
@@ -129,7 +130,7 @@ bool Server::send_to_channel(int fd, std::string &recipient, std::string &msg, b
 void Server::add_channel(std::string name)
 {
     if (_channels.find(name) == _channels.end())
-        _channels[name] = new Channel(name);
+        _channels[name] = new Channel(name, this);
 }
 
 std::string Server::getNamesMessage(Channel *channel, int client_fd)
@@ -176,4 +177,71 @@ bool Server::names(int fd, std::vector<std::string> name)
 	if (!_clients[fd]->send_message(end, fd))
 		return (false);
 	return (true);
+}
+
+bool	Channel::is_invited(std::string name)
+{
+	std::vector<std::string>::iterator it = _invites.begin();
+	for (; it != _invites.end(); ++it)
+	{
+		if (*it == name)
+			return true;
+	}
+	return (false);
+}
+
+
+void	Channel::join_channel(Client &c, std::vector<std::string> parts, int fd)
+{
+	// Use the provided Client reference 'c' as the joining client.
+	// Check invite-only mode
+	if (_modes['i'] && std::find(_invites.begin(), _invites.end(), c.get_nick()) == _invites.end())
+	{
+		if (is_invited(c.get_nick()))
+			remove_invite(c.get_nick());
+		else
+		{
+			c.send_message(":irc 473 " + c.get_nick() + " " + _name + " :Cannot join channel (+i)\r\n", c.get_client_fd());
+			return;
+		}
+	}
+	// Add the client to this channel and register the channel in the client
+	this->add_clients(c.get_nick());
+	c.add_client_pointer(this);
+
+	std::string full = ":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " JOIN :" + _name + "\r\n";
+	c.send_message(full, c.get_client_fd());
+
+	// Send NAMES (353) and end of NAMES (366) to the joining client
+	std::vector<std::string> clients = this->get_clients();
+	std::string names_list = ":irc 353 " + c.get_nick() + " = " + _name + " :";
+	for (size_t i = 0; i < clients.size(); ++i)
+	{
+		names_list += clients[i];
+		if (i < clients.size() - 1)
+			names_list += " ";
+	}
+	names_list += "\r\n";
+	c.send_message(names_list, c.get_client_fd());
+
+	std::string end = ":irc 366 " + c.get_nick() + " " + _name + " :End of /NAMES list\r\n";
+	c.send_message(end, c.get_client_fd());
+	serv->names(fd, parts);
+}
+
+void	Channel::topuc(Client &client, std::string parameters)
+{
+	bool is_mod = _ops.find(client.get_nick()) != _ops.end();
+	if (parameters.find(":") != std::string::npos)
+		parameters = parameters.substr(parameters.find(":") + 1, parameters.size());
+	if (_modes['t'] == 0)
+		_topic = parameters;
+	else if (is_mod)
+		_topic = parameters;
+	else
+	{
+		client.send_message(":irc 482 " + client.get_nick() + " " + _name + " :You're not a channel operator", client.get_client_fd());
+		return;
+	}
+	serv->send_to_channel(client.get_client_fd(), this->get_name() ,":" + client.get_nick() + "!" + client.get_user() + "@" + client.get_hostname() + " TOPIC " + _name + " :" + _topic + "\r\n", true);
 }

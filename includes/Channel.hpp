@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <sstream>
+#include <algorithm>
 
 class Client;
 class Server;
@@ -16,35 +17,47 @@ class Channel
 {
     private:
         std::string _name;
-		// Server		*serv;
+		Server		*serv;
 		std::string			_topic;
 		std::map<std::string, bool> _ops;
-		std::vector<std::string> _bans;
+		std::map<std::string, bool> _bans;
         std::map<char, bool> _modes; //tipo "invite only" = false/true
         std::string _pass;
         std::vector<std::string> _clients;
-        std::map<char, void (Channel::*)(Client&, std::string, bool)> _mode_funcs;    public:
+		std::vector<std::string> _invites;
+        std::map<char, void (Channel::*)(Client&, std::string, bool)> _mode_funcs;
     public:
-		Channel(std::string name/* , Server *server */);
-        std::string                 get_name();
-        std::string                 get_pass();
-        std::vector<std::string>    get_clients();
+		Channel(std::string name, Server *server);
+        std::string                 get_name() const;
+        std::string                 get_pass() const;
+
+		bool						is_op(std::string client);
+		bool						is_ban(std::string client);
+		bool						is_invited(std::string nick);
+
+
+		const std::vector<std::string>    &get_clients() const;
+		void						add_op(std::string op) { _ops[op]; }
         void                        send_modes(Client &client, int fd);
         void                        add_clients(std::string name) {_clients.push_back(name); };
         bool                        send_message(std::string message, int fd);
-		
- 		bool						modify_mode(std::vector<std::string> parts, Client &client, int fd);
+		void						add_invite(const std::string &nick) {_invites.push_back(nick);}
+		void						remove_invite(const std::string &nick) {std::remove(_invites.begin(), _invites.end(), nick), _invites.end();}
 
-/*		void						modify_invite(Client &client, std::string params, bool what);
+		bool						modify_mode(std::vector<std::string> parts, Client &client, int fd);
+
+		void						modify_invite(Client &client, std::string params, bool what);
 		void						modify_topic(Client &client, std::string params, bool what);
-		void						modify_key(Client &client, std::string params, bool what);
+/*		void						modify_key(Client &client, std::string params, bool what);
 		void						modify_ban(Client &client, std::string params, bool what);
 		void						modify_op(Client &client, std::string params, bool what);
 		void						modify_limit(Client &client, std::string params, bool what);
 		
 		void						send_bans(Client &client);
-		void						topuc(Client &client, std::string parameters);
 		bool						is_ban(std::string client) const; */
+		
+		void						topuc(Client &client, std::string parameters);
+		void						join_channel(Client &c, std::vector<std::string> parts, int fd);
 };
 
 template <typename T>

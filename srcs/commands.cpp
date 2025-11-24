@@ -6,7 +6,7 @@
 /*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/16 11:00:25 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/24 11:04:27 by scarlucc         ###   ########.fr       */
+/*   Updated: 2025/11/24 17:10:33 by scarlucc         ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -25,6 +25,7 @@ void Server::command_map()
 	_commands["JOIN"] = &Server::join;
 	_commands["NAMES"] = &Server::names;
 	_commands["MODE"] = &Server::mode;
+	_commands["INVITE"] = &Server::invite;
 }
 
 bool Server::handle_command(int fd, const std::vector<std::string> &line)
@@ -168,11 +169,12 @@ bool	Server::join(int fd, std::vector<std::string> parts)
 	if (!receiver)
 	{
 		add_channel(joinChannel);
-		Channel	*new_channel = _channels[joinChannel];
+		Channel *new_channel = _channels[joinChannel];
 		new_channel->add_clients(_clients[fd]->get_nick());
 		_clients[fd]->add_client_pointer(new_channel);
 		std::string full = ":" + sender->get_nick() + "!" + sender->get_user() + "@" + sender->get_hostname() + " JOIN :" + joinChannel + "\r\n";
 		send_to_channel(fd, joinChannel, full, true);
+		_channels[joinChannel]->add_op(sender->get_nick());
 		names(fd, parts);
 	}
 	else
@@ -180,15 +182,7 @@ bool	Server::join(int fd, std::vector<std::string> parts)
 		Client *sender = _clients[fd];
     	if (sender->isInChannel(joinChannel) != NULL)
     	    return (true);
-		receiver->add_clients(sender->get_nick()); 
-		sender->add_client_pointer(receiver);
-		std::string full = ":" + sender->get_nick() + "!" + sender->get_user() + "@" + sender->get_hostname() + " JOIN :" + joinChannel + "\r\n";
-    	send_to_channel(fd, joinChannel, full, true);
-    	std::string topic_reply = ":irc 332 " + sender->get_nick() + " " + joinChannel + " :The Topic of the Channel\r\n";
-		sender->send_message(topic_reply, fd);
-		
-    	// 7. Send NAMES (353 and 366)
-    	names(fd, parts);
+		_channels[joinChannel]->join_channel(*sender, parts, fd);
 	}
 	return (true);
 }
@@ -199,7 +193,7 @@ bool Server::mode(int fd, std::vector<std::string> parts)
 	if (parts.size() < 2)
 	{
 		client->send_message(":irc 461 " + client->get_nick() + " MODE :Not enough parameters", fd);
-		delete	client;
+		// delete	client;
 		return (false);
 	}
 	if (parts.size() == 2)
@@ -215,4 +209,50 @@ bool Server::mode(int fd, std::vector<std::string> parts)
 		return (true);
 	bool ret = _channels[parts[1]]->modify_mode(parts, *_clients[fd], fd);
 	return ret;
+}
+
+bool	Server::invite(int fd, std::vector<std::string> parts)
+{
+	if (parts.size() < 3)
+	{
+		_clients[fd]->send_message(":irc 461 " + _clients[fd]->get_nick() + " INVITE :Not enough parameters", fd);
+		return (false);
+	}
+	Client *sender = _clients[fd];
+	Client *receiver = find_by_nick(parts[1]);
+	Channel *chan = find_channel_name(parts[2]);
+	if (!receiver)
+	{
+		sender->send_message(":irc 401 " + sender->get_nick() + " " + parts[1] + " :No such nick/channel\r\n", fd);
+        return false;
+	}
+	if (!chan)
+    {
+        sender->send_message(":irc 403 " + sender->get_nick() + " " + parts[2] + " :No such channel\r\n", fd);
+        return false;
+    }
+    if (!sender->isInChannel(chan->get_name()))
+    {
+        sender->send_message(":irc 442 " + sender->get_nick() + " " + chan->get_name() + " :You're not in that channel\r\n", fd);
+        return false;
+    }
+    if (receiver->isInChannel(chan->get_name()))
+    {
+        sender->send_message(":irc 443 " + sender->get_nick() + " " + receiver->get_nick() + " " + chan->get_name() + " :is already on channel\r\n", fd);
+        return false;
+    }
+    if (!chan->is_op(sender->get_nick()))
+    {
+        sender->send_message(":irc 482 " + sender->get_nick() + " " + chan->get_name() + " :You're not channel operator\r\n", fd);
+        return false;
+    }
+	// perform invite
+    sender->send_message(":irc 341 " + sender->get_nick() + " " + receiver->get_nick() + " " + chan->get_name() + "\r\n", fd);
+    // notify channel (operators/clients) about the invite if desired
+    send_to_channel(fd, chan->get_name(), ":" + sender->get_nick() + "!" + sender->get_user() + "@" + sender->get_hostname() + " INVITE " + receiver->get_nick() + " " + chan->get_name() + "\r\n", true);
+    // notify the invited user directly
+    receiver->send_message(":" + sender->get_nick() + "!" + sender->get_user() + "@" + sender->get_hostname() + " INVITE " + receiver->get_nick() + " " + chan->get_name() + "\r\n", receiver->get_client_fd());
+	chan->add_invite(receiver->get_nick());
+
+	return (true);
 }
