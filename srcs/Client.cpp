@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 12:05:11 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/18 14:49:47 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/25 14:38:17 by scarlucc         ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #include "../includes/Client.hpp"
 #include "../includes/Channel.hpp"
@@ -47,6 +47,9 @@ std::string &Client::buffer() { return _buffer; }
 void Client::set_hostname(const std::string &h) {_hostname = h;}
 
 std::string &Client::get_hostname() {return (_hostname);}
+
+std::vector<Channel*>& Client::getChannels() { return _channels; }
+
 
 
 bool Client::send_message(std::string message, int fd)

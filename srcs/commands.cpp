@@ -6,7 +6,7 @@
 /*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/16 11:00:25 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/24 17:10:33 by scarlucc         ###   ########.fr       */
+/*   Updated: 2025/11/25 14:46:03 by scarlucc         ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -103,13 +103,23 @@ bool	Server::user(int fd, std::vector<std::string> vect)
 
 bool	Server::quit(int fd, std::vector<std::string> vect)
 {
-	//Client *client = _clients[fd];//per accedere alle funzioni di client
+	Client *client = _clients[fd];//per accedere alle funzioni di client
 	std::string goodbye = "Goodbye";
 	if (vect.size() > 1 && vect[1][0] == ':')
 		goodbye = vect[1];
-	goodbye.append("\n");
+	goodbye.append("\r\n");
+
+	std::string full = ":" + client->get_nick() + "!" + client->get_user() + "@" + client->get_hostname() + " QUIT :" + goodbye;
 	
 	//cambia con ciclo per inviare a tutti utenti in tutti canali di tizio quit
+	std::vector<Channel*>& channels = client->getChannels();
+	
+	for (std::vector<Channel *>::iterator it = channels.begin(); it != channels.end(); ++it)
+	{
+		std::cout << it._name << std::endl;
+	}
+
+	
 	send(fd, goodbye.c_str(), goodbye.size(), 0);
 	close_client(fd);
 	return (true);
