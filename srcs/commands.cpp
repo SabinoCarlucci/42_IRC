@@ -1,4 +1,4 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   commands.cpp                                       :+:      :+:    :+:   */
@@ -6,9 +6,9 @@
 /*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/16 11:00:25 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/25 14:46:03 by scarlucc         ###   ########.fr       */
+/*   Updated: 2025/11/27 01:04:47 by scarlucc         ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #include "../includes/Server.hpp"
 #include "../includes/Channel.hpp"
@@ -104,23 +104,38 @@ bool	Server::user(int fd, std::vector<std::string> vect)
 bool	Server::quit(int fd, std::vector<std::string> vect)
 {
 	Client *client = _clients[fd];//per accedere alle funzioni di client
+	if (!client) return true;
+	
 	std::string goodbye = "Goodbye";
 	if (vect.size() > 1 && vect[1][0] == ':')
 		goodbye = vect[1];
-	goodbye.append("\r\n");
+	//goodbye.append("\r\n");
 
-	std::string full = ":" + client->get_nick() + "!" + client->get_user() + "@" + client->get_hostname() + " QUIT :" + goodbye;
+	std::string full = ":" + client->get_nick() + "!" + client->get_user() + "@" + client->get_hostname() + " QUIT " + goodbye + "\r\n";
 	
-	//cambia con ciclo per inviare a tutti utenti in tutti canali di tizio quit
-	std::vector<Channel*>& channels = client->getChannels();
-	
-	for (std::vector<Channel *>::iterator it = channels.begin(); it != channels.end(); ++it)
+	//std::cout << "DEBUG: client " << client->get_nick() << " is in channels:\n";
+	const std::vector<Channel*>& channels = client->getChannels();
+	for (std::vector<Channel *>::const_iterator it = channels.begin(); it != channels.end(); ++it)
 	{
-		std::cout << it._name << std::endl;
-	}
+		Channel* ch = *it;
+		if (!ch) {
+			//std::cout << " - (null)\n";
+			continue;
+		}
+		//std::cout << " - Channel: " << ch->get_name() << "\n";
 
-	
-	send(fd, goodbye.c_str(), goodbye.size(), 0);
+		const std::vector<std::string>& clients_in_channel = ch->get_clients();
+        for (size_t i = 0; i < clients_in_channel.size(); ++i)
+		{
+			//std::cout << "   " << clients_in_channel[i] << "\n";
+			std::string client = clients_in_channel[i];
+			Client *clientPointer = find_by_nick(client);
+			int fd_to_send = clientPointer->get_client_fd();
+			if (fd_to_send != fd)
+				send(fd_to_send, full.c_str(), full.size(), 0);
+		}
+	}
+	//send(fd, goodbye.c_str(), goodbye.size(), 0);
 	close_client(fd);
 	return (true);
 }

@@ -1,4 +1,4 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
@@ -6,9 +6,9 @@
 /*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 11:42:06 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/25 14:37:44 by scarlucc         ###   ########.fr       */
+/*   Updated: 2025/11/26 18:41:56 by scarlucc         ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #ifndef CLIENT
 #define CLIENT
@@ -62,6 +62,7 @@ public:
     bool send_message(std::string message, int fd);
     Channel *isInChannel(std::string name);
 	std::vector<Channel*>& getChannels();
+	const std::vector<Channel*>& getChannels() const;
 
 
     void    add_client_pointer(Channel *channel);
