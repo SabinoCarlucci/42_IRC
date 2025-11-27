@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 11:46:27 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/20 11:26:06 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/27 17:59:14 by scarlucc         ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #ifndef SERVER_HPP
 #define SERVER_HPP
@@ -72,6 +72,7 @@ public:
     void    close_client(int idx); // index in _pfds
     bool    send_to_channel(int fd, std::string recipient, std::vector<std::string> parts);
     bool    send_to_channel(int fd, std::string recipient, std::string msg, bool raw);
+	//forse sarebbe meglio mettere funzioni send_to_channel nel canale
     
     // broadcast
     void broadcast_from(int sender_fd, const std::string &msg);

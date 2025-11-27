@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   cmd_helpers.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/18 11:32:37 by negambar          #+#    #+#             */
-/*   Updated: 2025/11/21 11:18:45 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/27 18:39:52 by scarlucc         ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #include "../includes/Server.hpp"
 #include "../includes/Channel.hpp"
@@ -209,8 +209,9 @@ void	Channel::join_channel(Client &c, std::vector<std::string> parts, int fd)
 	this->add_clients(c.get_nick());
 	c.add_client_pointer(this);
 
-	std::string full = ":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " JOIN :" + _name + "\r\n";
-	c.send_message(full, c.get_client_fd());
+	std::string full = ":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " JOIN :" + _name;  // \r\n vengono aggiunti in send_to_all
+	send_to_all( full );
+	//c.send_message(full, c.get_client_fd());
 
 	// Send NAMES (353) and end of NAMES (366) to the joining client
 	std::vector<std::string> clients = this->get_clients();
