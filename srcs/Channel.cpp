@@ -167,6 +167,7 @@ void	Channel::send_to_all( std::string quit_msg )
 
 void	Channel::quit_user( std::string user, std::string quit_msg )
 {
+    Client *c = serv->find_by_nick(user);
 	this->remove_user(user);
 	for (std::vector<std::string>::iterator client = _clients.begin(); client != _clients.end(); client++)
 	{
@@ -174,4 +175,15 @@ void	Channel::quit_user( std::string user, std::string quit_msg )
 		int fd = this_client->get_client_fd();
 		send_message(quit_msg, fd);
 	}
+    try
+    {
+        std::vector<std::string>::iterator it = _clients.begin();
+        std::advance(it, static_cast<size_t>(rand()) % _clients.size());
+        _ops[*it] = true;
+        serv->send_to_channel(c->get_client_fd(), get_name(), ":" + c->get_nick() + "!" + c->get_user() + "@" + c->get_hostname() + " MODE " + _name + " +o " + *it + "\r\n");
+    }
+    catch(const std::exception &e)
+    {
+        std::cerr << e.what() << "\n";
+    }
 }

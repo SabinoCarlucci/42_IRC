@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/18 11:32:37 by negambar          #+#    #+#             */
-/*   Updated: 2025/11/28 16:16:19 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/28 16:17:50 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -207,25 +207,6 @@ void	Channel::join_channel(Client &c, std::vector<std::string> parts, int fd)
 	serv->send_to_channel(c.get_client_fd(), get_name(), join_msg);
 	send_modes(c, c.get_client_fd());
 	serv->names(fd, parts);
-	std::string full = ":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " JOIN :" + _name;  // \r\n vengono aggiunti in send_to_all
-	send_to_all( full );
-	//c.send_message(full, c.get_client_fd());
-
-	// Send NAMES (353) and end of NAMES (366) to the joining client
-	std::vector<std::string> clients = this->get_clients();
-	std::string names_list = ":irc 353 " + c.get_nick() + " = " + _name + " :";
-	for (size_t i = 0; i < clients.size(); ++i)
-	{
-		names_list += clients[i];
-		if (i < clients.size() - 1)
-			names_list += " ";
-	}
-	//names_list += "\r\n"; //commentato per togliere rigo vuoto tra irc 353 e irc 366
-	c.send_message(names_list, c.get_client_fd());
-
-	std::string end = ":irc 366 " + c.get_nick() + " " + _name + " :End of /NAMES list\r\n";
-	c.send_message(end, c.get_client_fd());
-	//serv->names(fd, parts);
 }
 
 void	Channel::topuc(Client &client, std::string parameters)
