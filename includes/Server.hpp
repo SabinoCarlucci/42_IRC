@@ -1,14 +1,14 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
+/*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 11:46:27 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/27 17:59:14 by scarlucc         ###   ########.fr       */
+/*   Updated: 2025/11/28 15:59:13 by negambar         ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #ifndef SERVER_HPP
 #define SERVER_HPP
@@ -47,12 +47,8 @@ private:
 	void command_map();
 	bool handle_command(int fd, const std::vector<std::string> &line);
 
-    // helpers
-    std::vector<std::string>    split(const std::string &s, const std::string &delim);
-    std::vector<std::string>    split2(std::string str, char c, size_t pos);
-    size_t                      strlen(char *s){size_t i = 0; while (s[i++]){}; return (i);}
-
-
+    
+    
 public:
     Server(int port, const std::string &password);
     ~Server();
@@ -67,13 +63,13 @@ public:
     void run();
     
     // internal actions
-    void handle_client_read(int fd);
+    void       handle_client_read(int fd);
     void    accept_new_connection();
     void    close_client(int idx); // index in _pfds
     bool    send_to_channel(int fd, std::string recipient, std::vector<std::string> parts);
-    bool    send_to_channel(int fd, std::string recipient, std::string msg, bool raw);
+    bool    send_to_channel(int fd, std::string recipient, std::string msg);
 	//forse sarebbe meglio mettere funzioni send_to_channel nel canale
-    
+    void    remove_channel(std::string name);
     // broadcast
     void broadcast_from(int sender_fd, const std::string &msg);
     
@@ -87,6 +83,11 @@ public:
     bool    names(int fd, std::vector<std::string> name);
     bool    mode(int fd, std::vector<std::string> parts);
     bool    invite(int fd, std::vector<std::string> parts);
+    bool    part(int fd, std::vector<std::string> parts);
+    // helpers
+    std::vector<std::string>    split(const std::string &s, const std::string &delim);
+    std::vector<std::string>    split2(std::string str, char c, size_t pos);
+    size_t                      strlen(char *s){size_t i = 0; while (s[i++]){}; return (i);}
 };
 
 #endif

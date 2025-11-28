@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
+/*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 11:42:06 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/26 18:41:56 by scarlucc         ###   ########.fr       */
+/*   Updated: 2025/11/28 16:00:07 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,6 +66,7 @@ public:
 
 
     void    add_client_pointer(Channel *channel);
+    void    remove_client_pointer(Channel *chan);
 };
 
 //prints alle the information about the client
