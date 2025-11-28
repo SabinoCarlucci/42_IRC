@@ -144,3 +144,24 @@ bool Channel::modify_mode(std::vector<std::string> parts, Client &client, int fd
     
     return true;
 }
+void	Channel::send_to_all( std::string quit_msg )
+{
+	for (std::vector<std::string>::iterator client = _clients.begin(); client != _clients.end(); client++)
+	{
+		Client *this_client = serv->find_by_nick(*client);
+		int fd = this_client->get_client_fd();
+		send_message(quit_msg, fd);
+	}
+}
+
+
+void	Channel::quit_user( std::string user, std::string quit_msg )
+{
+	this->remove_user(user);
+	for (std::vector<std::string>::iterator client = _clients.begin(); client != _clients.end(); client++)
+	{
+		Client *this_client = serv->find_by_nick(*client);
+		int fd = this_client->get_client_fd();
+		send_message(quit_msg, fd);
+	}
+}

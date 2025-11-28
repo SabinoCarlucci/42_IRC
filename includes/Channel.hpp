@@ -57,7 +57,10 @@ class Channel
 		bool						is_ban(std::string client) const; */
 		
 		void						topuc(Client &client, std::string parameters);
-		void						join_channel(Client &c, std::vector<std::string> parts, int fd);
+		void						join_channel(Client &c/* , std::vector<std::string> parts, int fd */); //cambiato prototipo join_channel per evitare doppio messaggio di entrata
+		void						send_to_all( std::string quit_msg ); //versione semplificata di send_to_channel
+		void						remove_user( std::string user ) { this->_clients.erase(std::find(this->_clients.begin(),this->_clients.end(), user));}
+		void						quit_user( std::string user, std::string quit_msg );
 };
 
 template <typename T>
