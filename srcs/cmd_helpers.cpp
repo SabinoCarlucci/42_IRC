@@ -6,7 +6,7 @@
 /*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/18 11:32:37 by negambar          #+#    #+#             */
-/*   Updated: 2025/11/27 18:39:52 by scarlucc         ###   ########.fr       */
+/*   Updated: 2025/11/28 14:15:39 by scarlucc         ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -169,7 +169,7 @@ bool Server::names(int fd, std::vector<std::string> name)
 
 	Channel *channel = _channels[name[1]];
 	
-	std::string names_reply = getNamesMessage(channel, fd);
+	 std::string names_reply = getNamesMessage(channel, fd);
 	if (!_clients[fd]->send_message(names_reply, fd))
 		return (false);
 	
@@ -191,7 +191,7 @@ bool	Channel::is_invited(std::string name)
 }
 
 
-void	Channel::join_channel(Client &c, std::vector<std::string> parts, int fd)
+void	Channel::join_channel(Client &c/* , std::vector<std::string> parts, int fd */) //cambiato prototipo join_channel per evitare doppio messaggio di entrata
 {
 	// Use the provided Client reference 'c' as the joining client.
 	// Check invite-only mode
@@ -222,12 +222,12 @@ void	Channel::join_channel(Client &c, std::vector<std::string> parts, int fd)
 		if (i < clients.size() - 1)
 			names_list += " ";
 	}
-	names_list += "\r\n";
+	//names_list += "\r\n"; //commentato per togliere rigo vuoto tra irc 353 e irc 366
 	c.send_message(names_list, c.get_client_fd());
 
 	std::string end = ":irc 366 " + c.get_nick() + " " + _name + " :End of /NAMES list\r\n";
 	c.send_message(end, c.get_client_fd());
-	serv->names(fd, parts);
+	//serv->names(fd, parts);
 }
 
 void	Channel::topuc(Client &client, std::string parameters)

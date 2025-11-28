@@ -6,7 +6,7 @@
 /*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/16 11:00:25 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/27 17:31:58 by scarlucc         ###   ########.fr       */
+/*   Updated: 2025/11/28 14:15:14 by scarlucc         ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -186,7 +186,7 @@ bool	Server::join(int fd, std::vector<std::string> parts)
 		Client *sender = _clients[fd];
     	if (sender->isInChannel(joinChannel) != NULL)
     	    return (true);
-		_channels[joinChannel]->join_channel(*sender, parts, fd);
+		_channels[joinChannel]->join_channel(*sender/* , parts, fd */); //cambiato prototipo join_channel per evitare doppio messaggio di entrata
 	}
 	return (true);
 }
