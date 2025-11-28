@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   commands.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/16 11:00:25 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/28 16:13:16 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/28 18:23:35 by scarlucc         ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #include "../includes/Server.hpp"
 #include "../includes/Channel.hpp"
@@ -49,20 +49,30 @@ bool	Server::nick(int fd, std::vector<std::string> vect)
 {
 	if (vect.size() >= 2) 
 	{
+		Client *client = _clients[fd];//per accedere alle funzioni di client
+		
 		std::map<int, Client *>::iterator it = _clients.begin();
 		for (; it != _clients.end(); ++it)
 		{
 			if (it->first != fd && it->second->get_nick() == vect[1])
 			{
-				send(fd, "Nickname already taken\n", 24, 0);
+				//send(fd, "Nickname already taken\n", 24, 0);
 				return (false);
 			}
 		}
-		if (it == _clients.end())
+		if (it == _clients.end()) //se il nick non e' gia' preso
 		{
-		_clients[fd]->set_nick(vect[1]);
-		std::string reply = "Nickname set to " + vect[1] + "\n";
-		send(fd, reply.c_str(), reply.size(), 0);
+			std::string full = ":" + client->get_nick() + "!" + client->get_user() + "@" + client->get_hostname() + " NICK :" + vect[1];
+			std::vector<Channel*>& channels = client->getChannels();
+			if (channels.size() == 0)
+				send(fd, full.c_str(), full.size(), 0);  //se utente in nessun canale, scrivi messaggio solo a lui
+			else{
+				for (std::vector<Channel *>::iterator iter = channels.begin(); iter != channels.end(); ++iter)
+					(*iter)->change_nick_user(client->get_nick(), full);
+			}
+			_clients[fd]->set_nick(vect[1]);
+		/* std::string reply = "Nickname set to " + vect[1] + "\n";
+		send(fd, reply.c_str(), reply.size(), 0); */
 		}
 		return (true);
 	}

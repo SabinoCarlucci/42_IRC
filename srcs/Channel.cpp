@@ -187,3 +187,8 @@ void	Channel::quit_user( std::string user, std::string quit_msg )
         std::cerr << e.what() << "\n";
     }
 }
+
+void	Channel::change_nick_user( std::string user, std::string msg )
+{
+	
+}
