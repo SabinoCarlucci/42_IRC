@@ -18,9 +18,9 @@ class Channel
     private:
         std::string _name;
 		Server		*serv;
+		int			limit;
 		std::string			_topic;
 		std::map<std::string, bool> _ops;
-		std::map<std::string, bool> _bans;
         std::map<char, bool> _modes; //tipo "invite only" = false/true
         std::string _pass;
         std::vector<std::string> _clients;
@@ -31,12 +31,13 @@ class Channel
         std::string                 get_name() const;
         std::string                 get_pass() const;
 
+
+		void						remove_client(std::string nick, Client &c);
 		bool						is_op(std::string client);
-		bool						is_ban(std::string client);
 		bool						is_invited(std::string nick);
 
-
-		const std::vector<std::string>    &get_clients() const;
+		size_t						size() const { return(_clients.size() + _ops.size());}
+		const std::vector<std::string>	&get_clients() const;
 		void						add_op(std::string op) { _ops[op]; }
         void                        send_modes(Client &client, int fd);
         void                        add_clients(std::string name) {_clients.push_back(name); };
@@ -48,14 +49,9 @@ class Channel
 
 		void						modify_invite(Client &client, std::string params, bool what);
 		void						modify_topic(Client &client, std::string params, bool what);
-/*		void						modify_key(Client &client, std::string params, bool what);
-		void						modify_ban(Client &client, std::string params, bool what);
+		void						modify_key(Client &client, std::string params, bool what);
 		void						modify_op(Client &client, std::string params, bool what);
 		void						modify_limit(Client &client, std::string params, bool what);
-		
-		void						send_bans(Client &client);
-		bool						is_ban(std::string client) const; */
-		
 		void						topuc(Client &client, std::string parameters);
 		void						join_channel(Client &c, std::vector<std::string> parts, int fd);
 };

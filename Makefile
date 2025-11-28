@@ -7,7 +7,7 @@ OBJ_DIR = objs
 
 SRC = main.cpp \
       srcs/Client.cpp srcs/Server.cpp srcs/commands.cpp \
-      srcs/Channel.cpp srcs/cmd_helpers.cpp
+      srcs/Channel.cpp srcs/cmd_helpers.cpp srcs/modify.cpp
 
 OBJ = $(patsubst %.cpp,$(OBJ_DIR)/%.o,$(notdir $(SRC)))
 
@@ -38,3 +38,4 @@ fclean: clean
 re: fclean all
 
 .PHONY: all clean fclean re
+.SILENT:

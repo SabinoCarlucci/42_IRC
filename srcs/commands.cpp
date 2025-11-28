@@ -1,14 +1,14 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   commands.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
+/*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/16 11:00:25 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/24 17:10:33 by scarlucc         ###   ########.fr       */
+/*   Updated: 2025/11/28 13:01:58 by negambar         ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #include "../includes/Server.hpp"
 #include "../includes/Channel.hpp"
@@ -26,6 +26,7 @@ void Server::command_map()
 	_commands["NAMES"] = &Server::names;
 	_commands["MODE"] = &Server::mode;
 	_commands["INVITE"] = &Server::invite;
+	_commands["PART"] = &Server::part;
 }
 
 bool Server::handle_command(int fd, const std::vector<std::string> &line)
@@ -167,15 +168,17 @@ bool	Server::join(int fd, std::vector<std::string> parts)
 
 	Channel *receiver = find_channel_name(joinChannel);
 	if (!receiver)
-	{
-		add_channel(joinChannel);
-		Channel *new_channel = _channels[joinChannel];
-		new_channel->add_clients(_clients[fd]->get_nick());
-		_clients[fd]->add_client_pointer(new_channel);
-		std::string full = ":" + sender->get_nick() + "!" + sender->get_user() + "@" + sender->get_hostname() + " JOIN :" + joinChannel + "\r\n";
-		send_to_channel(fd, joinChannel, full, true);
+    {
+        add_channel(joinChannel);
+        Channel *new_channel = _channels[joinChannel];
+        new_channel->add_clients(_clients[fd]->get_nick());
+        _clients[fd]->add_client_pointer(new_channel);
+        std::string join_msg = ":" + sender->get_nick() + "!" + sender->get_user() + 
+                               "@" + sender->get_hostname() + " JOIN :" + joinChannel + "\r\n";
+        sender->send_message(join_msg, fd); 
 		_channels[joinChannel]->add_op(sender->get_nick());
-		names(fd, parts);
+		_clients[fd]->send_message(":" + sender->get_nick() + " MODE " + joinChannel + " +o " + sender->get_nick() + "\r\n", fd);
+        names(fd, parts); 
 	}
 	else
 	{
@@ -246,13 +249,62 @@ bool	Server::invite(int fd, std::vector<std::string> parts)
         sender->send_message(":irc 482 " + sender->get_nick() + " " + chan->get_name() + " :You're not channel operator\r\n", fd);
         return false;
     }
-	// perform invite
     sender->send_message(":irc 341 " + sender->get_nick() + " " + receiver->get_nick() + " " + chan->get_name() + "\r\n", fd);
-    // notify channel (operators/clients) about the invite if desired
-    send_to_channel(fd, chan->get_name(), ":" + sender->get_nick() + "!" + sender->get_user() + "@" + sender->get_hostname() + " INVITE " + receiver->get_nick() + " " + chan->get_name() + "\r\n", true);
-    // notify the invited user directly
+    send_to_channel(fd, chan->get_name(), ":" + sender->get_nick() + "!" + sender->get_user() + "@" + sender->get_hostname() + " INVITE " + receiver->get_nick() + " " + chan->get_name() + "\r\n");
     receiver->send_message(":" + sender->get_nick() + "!" + sender->get_user() + "@" + sender->get_hostname() + " INVITE " + receiver->get_nick() + " " + chan->get_name() + "\r\n", receiver->get_client_fd());
 	chan->add_invite(receiver->get_nick());
 
+	return (true);
+}
+
+void Client::remove_client_pointer(Channel *chan_to_remove)
+{
+    // Use std::remove_if with a lambda, or std::find followed by erase.
+    // Using std::find is often simpler for a single element:
+    std::vector<Channel *>::iterator it = _channels.begin();
+    while (it != _channels.end()) {
+		if (*it == chan_to_remove)
+		{
+			_channels.erase(it);
+			return;
+		}
+		else
+	        ++it;
+    }
+}
+
+bool Server::part(int fd, std::vector<std::string> parts)
+{
+	if (parts.size() < 2)
+	{
+		_clients[fd]->send_message(":irc 461 " + _clients[fd]->get_nick() + " PART :Not enough parameters", fd);
+		return false;
+	}
+	Client *sender = _clients[fd];
+	std::string msg_reason;
+	
+	if (parts.size() >= 3)
+	{
+		if (parts[2][0] == ':')
+			msg_reason = parts[2].substr(1);
+	}
+	else
+		msg_reason = ":Leaving";
+	std::vector<std::string> sp_channel = split(parts[1], ",");
+	for (std::vector<std::string>::iterator it = sp_channel.begin(); it != sp_channel.end(); ++it)
+	{
+		Channel *chan = find_channel_name(*it);
+		if (chan && sender->isInChannel(chan->get_name()))
+		{
+			sender->send_message(":" + sender->get_nick() + "!" + sender->get_user() + "@" + sender->get_hostname() + " PART " + chan->get_name() + " :" + msg_reason + "\r\n", fd);
+			send_to_channel(fd, chan->get_name(), ":" + sender->get_nick() + "!" + sender->get_user() + "@" + sender->get_hostname() + " PART " + chan->get_name() + " :" + msg_reason + "\r\n");
+			chan->remove_client(sender->get_nick(), *sender);
+			sender->remove_client_pointer(chan);
+		}
+		else if (chan && !sender->isInChannel(chan->get_name()))
+			sender->send_message(":irc 442 " + sender->get_nick() + " " + *it + " :You're not on that channel", fd);
+		else
+			sender->send_message(":irc 403 " + sender->get_nick() + " " + *it + " :No such channel", fd);
+	}
 	return (true);
 }

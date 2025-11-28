@@ -7,18 +7,17 @@ Channel::Channel(std::string name, Server *server)  : serv(server)
 	_name = name;
 	_modes['i'] = false;
 	_modes['t'] = false;
-	_modes['k'] = false;
-	_modes['o'] = false;
+
+    _modes['o'] = false;
 	_modes['l'] = false;
 	_modes['b'] = false;
 
 
  	_mode_funcs['i'] = &Channel::modify_invite;
 	_mode_funcs['t'] = &Channel::modify_topic;
-/*	_mode_funcs['k'] = &Channel::modify_key;
+	_mode_funcs['k'] = &Channel::modify_key;
 	_mode_funcs['o'] = &Channel::modify_op;
 	_mode_funcs['l'] = &Channel::modify_limit;
-	_mode_funcs['b'] = &Channel::modify_ban; */
 }
 
 std::string Channel::get_name() const
@@ -53,14 +52,6 @@ bool    Channel::is_op(std::string client)
     return (false);
 }
 
-bool    Channel::is_ban(std::string name)
-{
-    if (_bans.find(name) != _bans.end())
-        return (true);
-    return (false);
-}
-
-
 void	Channel::send_modes(Client &client, int fd)
 {
 	std::string start = ":irc 324 " + client.get_nick() + " " + get_name();
@@ -92,42 +83,25 @@ bool Channel::modify_mode(std::vector<std::string> parts, Client &client, int fd
         return false;
     }
 
-    // parts[3] is the first argument, parts[4] is the second, etc.
     size_t arg_index = 3;
-    char sign = '+'; // Start assuming '+' if the first char is a mode letter
+    char sign = '+';
 
-    // parts[2] is the mode string, e.g., "+ok-i"
     for (size_t i = 0; i < parts[2].length(); ++i)
     {
         char mode_char = parts[2][i];
         std::string mode_arg = "";
-        
-        // 1. Check for sign change
+
         if (mode_char == '+' || mode_char == '-')
         {
             sign = mode_char;
-            continue; // Move to the next character (which should be the mode letter)
+            continue;
         }
-        
-        // At this point, mode_char is a mode letter (e.g., 'o', 'k', 'i')
-        
-        // 2. Check if the mode exists
         if (_mode_funcs.find(mode_char) == _mode_funcs.end())
         {
-            // Unknown mode
             client.send_message(":irc 472 " + client.get_nick() + " " + _name + " " + mode_char + " :is unknown mode char to me", fd);
-            // It's usually okay to continue parsing other modes, but for simplicity, we return true if we sent a response.
             continue; 
         }
 
-        // 3. Check for argument requirement (This assumes your mode functions know which modes take args)
-        // **NOTE:** This is the most complex part of IRC MODE. Modes 'o', 'k', 'l', 'b', 'v', 'a', 'i', 't', 'n', 'm', 'p', 's', 'r' 
-        // have different rules for args on add/remove, which you must check inside the mode functions.
-        // For simplicity, we just check if an argument is available and pass it if required.
-        // A common simplification is to assume modes 'o' and 'k' always require an argument on ADD and sometimes on REMOVE.
-        
-        // For simplicity in this fix, we will just pass the next available argument if there is one.
-        // Your mode function needs to check if it's the correct mode and argument is needed.
         bool needs_arg = (mode_char == 'o' || mode_char == 'k' || mode_char == 'l'); 
         
         if (needs_arg && arg_index < parts.size())
@@ -143,4 +117,40 @@ bool Channel::modify_mode(std::vector<std::string> parts, Client &client, int fd
     }
     
     return true;
+}
+
+void Server::remove_channel(std::string name)
+{
+    if (_channels.find(name) != _channels.end())
+    {
+        delete _channels[name];
+        _channels.erase(name);
+    }
+}
+
+void Channel::remove_client(std::string nick, Client &c)
+{
+    std::vector<std::string>::iterator it = std::find(_clients.begin(), _clients.end(), nick);
+    if (it != _clients.end())
+        _clients.erase(it);
+    if (_ops.find(nick) != _ops.end())
+        _ops.erase(nick);
+    if (this->size() == 0)
+    {
+        serv->remove_channel(_name);
+    }
+    else if (_ops.size() == 0 && !_clients.empty())
+    {
+        try
+        {
+            std::vector<std::string>::iterator it = _clients.begin();
+            std::advance(it, static_cast<size_t>(rand()) % _clients.size());
+            _ops[*it] = true;
+            serv->send_to_channel(c.get_client_fd(), get_name(), ":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " MODE " + _name + " +o " + *it + "\r\n");
+        }
+        catch(const std::exception &e)
+        {
+            std::cerr << e.what() << "\n";
+        }
+    }
 }
