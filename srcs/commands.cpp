@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/16 11:00:25 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/28 13:01:58 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/28 15:34:22 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -287,6 +287,8 @@ bool Server::part(int fd, std::vector<std::string> parts)
 	{
 		if (parts[2][0] == ':')
 			msg_reason = parts[2].substr(1);
+		else
+			msg_reason = parts[2];
 	}
 	else
 		msg_reason = ":Leaving";
@@ -296,8 +298,8 @@ bool Server::part(int fd, std::vector<std::string> parts)
 		Channel *chan = find_channel_name(*it);
 		if (chan && sender->isInChannel(chan->get_name()))
 		{
-			sender->send_message(":" + sender->get_nick() + "!" + sender->get_user() + "@" + sender->get_hostname() + " PART " + chan->get_name() + " :" + msg_reason + "\r\n", fd);
-			send_to_channel(fd, chan->get_name(), ":" + sender->get_nick() + "!" + sender->get_user() + "@" + sender->get_hostname() + " PART " + chan->get_name() + " :" + msg_reason + "\r\n");
+			sender->send_message(":" + sender->get_nick() + "!" + sender->get_user() + "@" + sender->get_hostname() + " PART " + chan->get_name() + " " + msg_reason + "\r\n", fd);
+			send_to_channel(fd, chan->get_name(), ":" + sender->get_nick() + "!" + sender->get_user() + "@" + sender->get_hostname() + " PART " + chan->get_name() + " " + msg_reason + "\r\n");
 			chan->remove_client(sender->get_nick(), *sender);
 			sender->remove_client_pointer(chan);
 		}
