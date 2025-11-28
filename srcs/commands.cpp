@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/16 11:00:25 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/28 15:54:18 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/28 16:13:16 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -189,7 +189,7 @@ bool	Server::join(int fd, std::vector<std::string> parts)
 		Client *sender = _clients[fd];
     	if (sender->isInChannel(joinChannel) != NULL)
     	    return (true);
-		_channels[joinChannel]->join_channel(*sender/* , parts, fd */); //cambiato prototipo join_channel per evitare doppio messaggio di entrata
+		_channels[joinChannel]->join_channel(*sender, parts, fd); //cambiato prototipo join_channel per evitare doppio messaggio di entrata
 	}
 	return (true);
 }
