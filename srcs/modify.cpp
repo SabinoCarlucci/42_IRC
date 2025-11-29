@@ -60,11 +60,13 @@ void Channel::modify_key(Client &c, std::string params, bool what)
     {
         _modes['k'] = 1;
         _pass = params;
-        serv->send_to_channel(c.get_client_fd(), get_name(), ":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " MODE " + _name + " +k :" + _pass + "\r\n");
+        c.send_message(":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " MODE " + _name + " +k " + params + "\r\n", c.get_client_fd());
+        serv->send_to_channel(c.get_client_fd(), get_name(), ":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " MODE " + _name + " +k\r\n");
     }
     else if (!what && mod)
     {
         _modes['k'] = 0;
+        c.send_message(":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " MODE " + _name + " -k\r\n", c.get_client_fd());
         serv->send_to_channel(c.get_client_fd(), get_name(), ":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " MODE " + _name + " -k\r\n");
         _pass = "";
     }
@@ -142,11 +144,13 @@ void Channel::modify_limit(Client &c, std::string params, bool what)
         }
         
         _modes['l'] = static_cast<int>(limit_val);
+        c.send_message(":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " MODE " + _name + " +l " + params + "\r\n", c.get_client_fd());
         serv->send_to_channel(c.get_client_fd(), get_name(), ":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " MODE " + _name + " +l " + params + "\r\n");
     }
     else
     {
         _modes['l'] = 0;
+        c.send_message(":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " MODE " + _name + " -l\r\n", c.get_client_fd());
         serv->send_to_channel(c.get_client_fd(), get_name(), ":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " MODE " + _name + " -l\r\n");
     }
 }

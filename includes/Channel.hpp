@@ -38,7 +38,7 @@ class Channel
 
 		size_t						size() const { return(_clients.size() + _ops.size());}
 		const std::vector<std::string>	&get_clients() const;
-		void						add_op(std::string op) { _ops[op]; }
+		void						add_op(std::string op) { _ops[op] = true; }
         void                        send_modes(Client &client, int fd);
         void                        add_clients(std::string name) {_clients.push_back(name); };
         bool                        send_message(std::string message, int fd);

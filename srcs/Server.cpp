@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 13:38:41 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/28 15:14:51 by negambar         ###   ########.fr       */
+/*   Updated: 2025/11/29 14:54:49 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -186,10 +186,16 @@ void Server::handle_client_read(int fd)
     char buf[4096];
     ssize_t n = recv(fd, buf, sizeof(buf), 0);
     if (n > 0) {
-        _clients[fd]->buffer().append(buf, n);
+        std::string cbuffer = _clients[fd]->buffer();
+        cbuffer.append(buf, n);
         // process complete lines (support \n or \r\n)
-        std::string &b = _clients[fd]->buffer();
-        size_t pos;
+        size_t pos = cbuffer.find(" ::");
+        if (pos != std::string::npos)
+        {
+            // Replace " ::" (space, colon, colon) with " :" (space, colon)
+            cbuffer.replace(pos + 1, 2, ":");
+        }
+        std::string &b = cbuffer;
         while ((pos = b.find('\n')) != std::string::npos) {
             std::string line = b.substr(0, pos + 1);
             
