@@ -6,7 +6,7 @@
 /*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/16 11:00:25 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/28 18:23:35 by scarlucc         ###   ########.fr       */
+/*   Updated: 2025/11/29 18:50:45 by scarlucc         ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -64,13 +64,14 @@ bool	Server::nick(int fd, std::vector<std::string> vect)
 		{
 			std::string full = ":" + client->get_nick() + "!" + client->get_user() + "@" + client->get_hostname() + " NICK :" + vect[1];
 			std::vector<Channel*>& channels = client->getChannels();
-			if (channels.size() == 0)
-				send(fd, full.c_str(), full.size(), 0);  //se utente in nessun canale, scrivi messaggio solo a lui
-			else{
-				for (std::vector<Channel *>::iterator iter = channels.begin(); iter != channels.end(); ++iter)
+			std::string full_newline = full + "\r\n";
+			send(fd, full_newline.c_str(), full_newline.size(), 0);  //se utente in nessun canale, scrivi messaggio solo a lui
+			if (channels.size() != 0)
+			{
+				for (std::vector<Channel *>::iterator iter = channels.begin(); iter != channels.end(); ++iter)//ciclo scrive messaggio a tutti tranne che a utente
 					(*iter)->change_nick_user(client->get_nick(), full);
 			}
-			_clients[fd]->set_nick(vect[1]);
+			client->set_nick(vect[1]);
 		/* std::string reply = "Nickname set to " + vect[1] + "\n";
 		send(fd, reply.c_str(), reply.size(), 0); */
 		}

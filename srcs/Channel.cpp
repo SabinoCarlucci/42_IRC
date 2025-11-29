@@ -190,5 +190,15 @@ void	Channel::quit_user( std::string user, std::string quit_msg )
 
 void	Channel::change_nick_user( std::string user, std::string msg )
 {
-	
+	//Client *c = serv->find_by_nick(user);
+	for (std::vector<std::string>::iterator client = _clients.begin(); client != _clients.end(); client++)
+	{
+		Client *this_client = serv->find_by_nick(*client);
+		std::string is_me = this_client->get_nick();
+		if (is_me != user)
+		{
+			int fd = this_client->get_client_fd();
+			send_message(msg, fd);
+		}
+	}
 }

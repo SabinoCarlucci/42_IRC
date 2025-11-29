@@ -57,6 +57,7 @@ class Channel
 		void						send_to_all( std::string quit_msg ); //versione semplificata di send_to_channel
 		void						remove_user( std::string user ) { this->_clients.erase(std::find(this->_clients.begin(),this->_clients.end(), user));}
 		void						quit_user( std::string user, std::string quit_msg );
+		void						change_nick_user( std::string user, std::string msg );
 };
 
 template <typename T>
