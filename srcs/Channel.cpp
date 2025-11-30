@@ -188,7 +188,7 @@ void	Channel::quit_user( std::string user, std::string quit_msg )
     }
 }
 
-void	Channel::change_nick_user( std::string user, std::string msg )
+void	Channel::change_nick_user( std::string user, std::string new_nick, std::string msg )
 {
 	//Client *c = serv->find_by_nick(user);
 	for (std::vector<std::string>::iterator client = _clients.begin(); client != _clients.end(); client++)
@@ -199,6 +199,11 @@ void	Channel::change_nick_user( std::string user, std::string msg )
 		{
 			int fd = this_client->get_client_fd();
 			send_message(msg, fd);
+		}
+		else
+		{
+			*(client) = new_nick;
+			//ripetere per altri elenchi, tipo ban e forse invite
 		}
 	}
 }

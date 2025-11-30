@@ -6,7 +6,7 @@
 /*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/16 11:00:25 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/29 18:50:45 by scarlucc         ###   ########.fr       */
+/*   Updated: 2025/11/30 17:08:24 by scarlucc         ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -52,7 +52,7 @@ bool	Server::nick(int fd, std::vector<std::string> vect)
 		Client *client = _clients[fd];//per accedere alle funzioni di client
 		
 		std::map<int, Client *>::iterator it = _clients.begin();
-		for (; it != _clients.end(); ++it)
+		for (; it != _clients.end(); ++it)//controlla se nick gia' preso
 		{
 			if (it->first != fd && it->second->get_nick() == vect[1])
 			{
@@ -69,9 +69,9 @@ bool	Server::nick(int fd, std::vector<std::string> vect)
 			if (channels.size() != 0)
 			{
 				for (std::vector<Channel *>::iterator iter = channels.begin(); iter != channels.end(); ++iter)//ciclo scrive messaggio a tutti tranne che a utente
-					(*iter)->change_nick_user(client->get_nick(), full);
+					(*iter)->change_nick_user(client->get_nick(), vect[1], full);
 			}
-			client->set_nick(vect[1]);
+			client->set_nick(vect[1]); //questo va fatto alla fine, altrimenti non riesci a trovare il client cercando per nome
 		/* std::string reply = "Nickname set to " + vect[1] + "\n";
 		send(fd, reply.c_str(), reply.size(), 0); */
 		}
