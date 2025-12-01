@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 13:38:41 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/28 15:14:51 by negambar         ###   ########.fr       */
+/*   Updated: 2025/12/01 15:25:27 by scarlucc         ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 
 #include "../includes/Server.hpp"
@@ -49,6 +49,13 @@ Server::~Server()
         delete it->second;
     }
     _clients.clear();
+	
+	for (std::map<std::string, Channel*>::iterator channel = _channels.begin(); channel != _channels.end(); ++channel)
+	{
+		delete channel->second;
+	}
+	_channels.clear();
+	
     for (size_t i = 0; i < _pfds.size(); ++i) close(_pfds[i].fd);
 }
 

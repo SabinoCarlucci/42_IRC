@@ -6,7 +6,7 @@
 /*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 13:41:21 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/21 16:02:50 by scarlucc         ###   ########.fr       */
+/*   Updated: 2025/12/01 15:28:32 by scarlucc         ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -39,7 +39,7 @@ int main(int argc, char **argv)
         Server serv(port, pw);
         serv.run();
     } catch (const std::exception &e) {
-        std::cerr << "Fatal: " << e.what() << std::endl;
+        std::cerr << "\nFatal: " << e.what() << std::endl;
         return 1;
     }
     return 0;
