@@ -60,7 +60,7 @@ void Channel::modify_key(Client &c, std::string params, bool what)
     {
         _modes['k'] = 1;
         _pass = params;
-        serv->send_to_channel(c.get_client_fd(), get_name(), ":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " MODE " + _name + " +k :" + _pass + "\r\n");
+        serv->send_to_channel(c.get_client_fd(), get_name(), ":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " MODE " + _name + " +k\r\n");
     }
     else if (!what && mod)
     {
@@ -93,6 +93,7 @@ void    Channel::modify_op(Client &c, std::string params, bool what)
                 c.send_message(":irc 400 " + c.get_nick() + " " + _name + " :Too many operators", c.get_client_fd());
             }
             _ops[add->get_nick()] = true;
+            c.send_message(":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " MODE " + _name + " +o " + params + "\r\n", c.get_client_fd());
             serv->send_to_channel(c.get_client_fd(), get_name(), ":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " MODE " + _name + " +o " + params + "\r\n");
         }
         else
