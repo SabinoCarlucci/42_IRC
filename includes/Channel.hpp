@@ -30,12 +30,11 @@ class Channel
 		Channel(std::string name, Server *server);
         std::string                 get_name() const;
         std::string                 get_pass() const;
-
-
+		
 		void						remove_client(std::string nick, Client &c);
 		bool						is_op(std::string client);
 		bool						is_invited(std::string nick);
-
+		
 		size_t						size() const { return(_clients.size() + _ops.size());}
 		const std::vector<std::string>	&get_clients() const;
 		void						add_op(std::string op) { _ops[op] = true; }
@@ -44,7 +43,7 @@ class Channel
         bool                        send_message(std::string message, int fd);
 		void						add_invite(const std::string &nick) {_invites.push_back(nick);}
 		void						remove_invite(const std::string &nick) {std::remove(_invites.begin(), _invites.end(), nick), _invites.end();}
-
+		
 		bool						modify_mode(std::vector<std::string> parts, Client &client, int fd);
 
 		void						modify_invite(Client &client, std::string params, bool what);
@@ -52,6 +51,7 @@ class Channel
 		void						modify_key(Client &client, std::string params, bool what);
 		void						modify_op(Client &client, std::string params, bool what);
 		void						modify_limit(Client &client, std::string params, bool what);
+		bool						send_topic(Client &c);
 		void						topuc(Client &client, std::string parameters);
 		void						join_channel(Client &c, std::vector<std::string> parts, int fd); //cambiato prototipo join_channel per evitare doppio messaggio di entrata
 		void						send_to_all( std::string quit_msg ); //versione semplificata di send_to_channel

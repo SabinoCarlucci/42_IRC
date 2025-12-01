@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 11:46:27 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/28 15:59:13 by negambar         ###   ########.fr       */
+/*   Updated: 2025/12/01 14:04:32 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,6 +84,9 @@ public:
     bool    mode(int fd, std::vector<std::string> parts);
     bool    invite(int fd, std::vector<std::string> parts);
     bool    part(int fd, std::vector<std::string> parts);
+    bool    topic(int fd, std::vector<std::string> parts);
+    bool	send_topic(Client &c);
+    void    write_to_client(int fd, std::string str);
     // helpers
     std::vector<std::string>    split(const std::string &s, const std::string &delim);
     std::vector<std::string>    split2(std::string str, char c, size_t pos);

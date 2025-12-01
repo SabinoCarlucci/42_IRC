@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/16 11:00:25 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/29 15:05:09 by negambar         ###   ########.fr       */
+/*   Updated: 2025/12/01 14:25:41 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ void Server::command_map()
 	_commands["MODE"] = &Server::mode;
 	_commands["INVITE"] = &Server::invite;
 	_commands["PART"] = &Server::part;
+	_commands["TOPIC"] = &Server::topic;
 }
 
 bool Server::handle_command(int fd, const std::vector<std::string> &line)
@@ -318,5 +319,35 @@ bool Server::part(int fd, std::vector<std::string> parts)
 		else
 			sender->send_message(":irc 403 " + sender->get_nick() + " " + *it + " :No such channel", fd);
 	}
+	return (true);
+}
+
+void	Server::write_to_client(int fd, std::string str)
+{
+	str.append("\r\n");
+	send(fd, str.c_str(), str.size(), 0);
+}
+
+bool Server::topic(int fd, std::vector<std::string> parts)
+{
+	std::string topic = "";
+	if (parts[2].find(":") != std::string::npos)
+		topic = parts[2].substr(1);
+	if (parts.size() < 2) //no #channel
+	{
+		write_to_client(fd, ":irc 461 " + _clients[fd]->get_nick() + " TOPIC :Not enough parameters");
+		return (false);
+	}
+	Channel *chan = find_channel_name(parts[1]);
+	Client	*c = _clients[fd];
+	if (!chan)
+	{
+		c->send_message(":irc 403 " + c->get_nick() + " " + parts[1] + " :No such channel", fd);
+		return (false);
+	}
+	if (parts.size() == (2 + (unsigned long)topic.empty()))
+		chan->send_topic(*c);
+	else
+		chan->topuc(*c, topic);
 	return (true);
 }

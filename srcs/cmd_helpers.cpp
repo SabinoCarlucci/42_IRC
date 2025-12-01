@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/18 11:32:37 by negambar          #+#    #+#             */
-/*   Updated: 2025/11/28 16:17:50 by negambar         ###   ########.fr       */
+/*   Updated: 2025/12/01 14:06:31 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,13 @@ bool Server::send_to_channel(int fd, std::string recipient, std::vector<std::str
 	}
     
     return true;
+}
+bool	Channel::send_topic(Client &c)
+{
+	if (_topic.empty())
+		return (c.send_message(":irc 331 " + c.get_nick() + " " + _name + " :No topic is set", c.get_client_fd()));
+	else
+		return (c.send_message(":irc 332 " + c.get_nick() + " " + _name + " :" + _topic, c.get_client_fd()));
 }
 
 bool Server::send_to_channel(int fd, std::string recipient, std::string msg)
@@ -223,5 +230,6 @@ void	Channel::topuc(Client &client, std::string parameters)
 		client.send_message(":irc 482 " + client.get_nick() + " " + _name + " :You're not a channel operator", client.get_client_fd());
 		return;
 	}
+	client.send_message(":" + client.get_nick() + "!" + client.get_user() + "@" + client.get_hostname() + " TOPIC " + _name + " :" + _topic + "\r\n", client.get_client_fd());
 	serv->send_to_channel(client.get_client_fd(), this->get_name() ,":" + client.get_nick() + "!" + client.get_user() + "@" + client.get_hostname() + " TOPIC " + _name + " :" + _topic + "\r\n");
 }
