@@ -6,7 +6,7 @@
 /*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 13:38:41 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/12/01 15:25:27 by scarlucc         ###   ########.fr       */
+/*   Updated: 2025/12/01 18:58:37 by scarlucc         ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -21,6 +21,7 @@
 #include <arpa/inet.h>
 #include <cstring>
 #include <sys/socket.h>
+#include <bits/stdc++.h>
 
 Server::Server(int port, const std::string &password)
 : _port(port), _password(password), _server_fd(-1)
@@ -205,8 +206,8 @@ void Server::handle_client_read(int fd)
 				line.erase(line.size() - 1);//se ultimo \r o \n e' a fine stringa, rimuovi ultimo carattere stringa
 
             if (!line.empty()) {
-				std::cout << "[RECV fd=" << fd << "] " << line << std::endl;
-                // minimal parsing: split at space
+				std::cout << "[RECV fd=" << fd << "] " << line << std::endl;//commentare prima di consegna
+
                 std::vector<std::string> parts = split2(line, ' ', line.find(":"));
 				
                 if (!parts.empty()) {
