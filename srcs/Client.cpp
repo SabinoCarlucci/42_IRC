@@ -3,23 +3,32 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
+/*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 12:05:11 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/26 18:41:50 by scarlucc         ###   ########.fr       */
+/*   Updated: 2025/12/02 12:51:31 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Client.hpp"
 #include "../includes/Channel.hpp"
 
-Client::Client(int fd)
-: _fd(fd),
-  _buffer(),
-  _nick(),
-  _user(),
-  _authenticated(false)
-{}
+Client::Client(int fd) : _fd(fd), _buffer(), _nick(), _user(), _authenticated(false)
+  {}
+
+
+Client::Client(int clientSocket_arg, const struct sockaddr_in _clientArg) 
+    : _fd(clientSocket_arg),
+	clientAddr(_clientArg),
+	_buffer(""),
+	_nick(""),
+	_user(""),
+	_hostname(""),
+	_authenticated(false),
+	clientSocket(clientSocket_arg),
+	_channels()
+{
+}
 
 Client::~Client()
 {}

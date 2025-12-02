@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 13:38:41 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/28 15:14:51 by negambar         ###   ########.fr       */
+/*   Updated: 2025/12/02 12:52:38 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -164,8 +164,7 @@ void Server::accept_new_connection()
     
     char ipbuf[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &(cli_addr.sin_addr), ipbuf, INET_ADDRSTRLEN);
-
-    Client *c = new Client(client_fd);
+    Client *c = new Client(client_fd, cli_addr);
     c->set_hostname(ipbuf);
     _clients[client_fd] = c;
 

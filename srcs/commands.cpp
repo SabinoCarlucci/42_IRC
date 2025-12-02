@@ -1,14 +1,14 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   commands.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
+/*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/16 11:00:25 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/12/01 12:43:20 by scarlucc         ###   ########.fr       */
+/*   Updated: 2025/12/02 13:07:55 by negambar         ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #include "../includes/Server.hpp"
 #include "../includes/Channel.hpp"
@@ -27,6 +27,8 @@ void Server::command_map()
 	_commands["MODE"] = &Server::mode;
 	_commands["INVITE"] = &Server::invite;
 	_commands["PART"] = &Server::part;
+	_commands["TOPIC"] = &Server::topic;
+	_commands["KICK"] = &Server::kick;
 }
 
 bool Server::handle_command(int fd, const std::vector<std::string> &line)
@@ -324,4 +326,129 @@ bool Server::part(int fd, std::vector<std::string> parts)
 			sender->send_message(":irc 403 " + sender->get_nick() + " " + *it + " :No such channel", fd);
 	}
 	return (true);
+}
+
+void	Server::kick_in_loop(int fd, std::string kick_chan, std::string kick_clients, std::string msg)
+{
+	Channel	*chan = find_channel_name(kick_chan);
+	Client	*sender = _clients[fd];
+	if (!chan)
+	{
+		write_to_client(fd, ":irc 403 " + sender->get_nick() + " " + kick_chan + " :No such channel");
+		return ;
+	}
+	if (!sender->isInChannel(chan->get_name()))
+	{
+		write_to_client(fd, ":irc 442 " + sender->get_nick() + " " + kick_chan + " :You're not on that channel");
+		return;
+	}
+	if (!chan->is_op(sender->get_nick()))
+	{
+		write_to_client(fd, ":irc 482 " + sender->get_nick() + " " + kick_chan + " :You are not an channel operator");
+		return;
+	}
+	if (!sender->isInChannel(chan->get_name()))
+	{
+		if (find_by_nick(kick_clients) == NULL)
+			write_to_client(fd, ":irc 401 " + sender->get_nick() + " " + kick_clients + " :No such nick/channel");
+		else
+			write_to_client(fd, ":irc 441 " + sender->get_nick() + " " + kick_clients + " " + kick_chan + " :They aren't in that channel");
+		return;
+	}
+	write_to_client(find_by_nick(kick_clients)->get_clientSocket(), ":" + sender->get_nick() + " KICK " + kick_chan + " " + kick_clients + " :" + msg);
+	send_to_channel(fd, kick_chan, ":" + sender->get_nick() + "!" + sender->get_user() + "@" + sender->get_hostname() + " KICK " + kick_chan + " " + kick_clients + " :" + msg);
+	chan->send_message(":" + sender->get_nick() + "!" + sender->get_user() + "@" + sender->get_hostname() + " KICK " + kick_chan + " " + kick_clients + " :" + msg, fd);
+	chan->remove_client(kick_clients, *(find_by_nick(kick_clients)));
+}
+
+bool Server::kick(int fd, std::vector<std::string> parts)
+{
+	std::string message =	unresplit(parts);
+
+	std::string kick_msg = "stinkyyy!";
+	Client *c = _clients[fd];
+	size_t pos = message.find(" :");
+	if (pos != std::string::npos)
+	{
+		kick_msg = message.substr(pos + 2);
+		message = message.substr(0, pos);
+	}
+	std::vector<std::string> split_msg = split(message, " ");
+	if (split_msg.size() < 3)
+	{
+		write_to_client(fd, ":irc 461 " + c->get_nick() + " KICK :Not enough parameters");
+		return true;
+	}
+	std::vector<std::string> kick_channels = split(split_msg[1], ",");
+	std::vector<std::string> kick_clients = split(split_msg[2], ",");
+	for (std::vector<std::string>::iterator it = kick_channels.begin(); it != kick_channels.end(); ++it)
+	{
+		for (std::vector<std::string>::iterator it2 = kick_clients.begin(); it2 != kick_clients.end(); ++it2)
+		{
+			kick_in_loop(fd, *it, *it2, kick_msg);
+		}
+	}
+	return true;
+    // if (parts.size() < 3)
+    // {
+    //     write_to_client(fd, ":irc 461 " + _clients[fd]->get_nick() + " KICK :Not enough parameters");
+    //     return false;
+    // }
+
+    // std::string kick_msg = "oh oh! stinkyyy";
+
+    // if (parts.size() > 3)
+    // {
+    //     size_t pos = parts[3].find(":");
+    //     if (pos != std::string::npos)
+    //         kick_msg = parts[3].substr(pos + 1);
+    //     else
+    //         kick_msg = parts[3];
+    // }
+
+    // std::vector<std::string> kick_channels = split(parts[1], ",");
+    // std::vector<std::string> kick_clients = split(parts[2], ",");
+    
+    // for (std::vector<std::string>::iterator it = kick_channels.begin(); it != kick_channels.end(); ++it)
+    // {
+    //     for (std::vector<std::string>::iterator it2 = kick_clients.begin(); it2 != kick_clients.end(); ++it2)
+    //         kick_in_loop(fd, *it, *it2, kick_msg);
+    // }
+
+    // return true;
+}
+
+
+bool Server::topic(int fd, std::vector<std::string> params)
+{
+	std::string params2 = unresplit(params);
+	std::string topic = "";
+	if (params2.find(":") != std::string::npos)
+	{
+		topic = params2.substr(params2.find(":") + 1);
+		params2 = params2.substr(0, params2.find(":"));
+	}
+	std::vector<std::string> split_msg = split(params2, " ");
+
+	if (split_msg.size() < 2) // TOPIC without #chan
+	{
+		write_to_client(fd, ":irc 461 " + _clients[fd]->get_nick() + " TOPIC :Not enough parameters");
+		return true;
+	}
+	Channel *chan = find_channel_name(split_msg[1]);
+	if (!chan)
+	{
+		_clients[fd]->send_message(":irc 403 " + _clients[fd]->get_nick() + " " + split_msg[1] + " :No such channel", fd);
+		return true;
+	}
+	if (_clients[fd]->isInChannel(chan->get_name()) == false)
+	{
+		_clients[fd]->send_message(":irc 442 " + _clients[fd]->get_nick() + " " + split_msg[1] + " :You're not on that channel", fd);
+		return true;
+	}
+	if (split_msg.size() == 2 + (topic.empty() ? 0 : 1))
+		chan->send_topic(*_clients[fd], fd);
+	else
+		chan->topuc(*_clients[fd], topic);
+	return true;
 }

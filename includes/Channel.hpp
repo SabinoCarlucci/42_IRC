@@ -58,6 +58,9 @@ class Channel
 		void						remove_user( std::string user ) { this->_clients.erase(std::find(this->_clients.begin(),this->_clients.end(), user));}
 		void						quit_user( std::string user, std::string quit_msg );
 		void						change_nick_user( std::string user, std::string new_nick, std::string msg );
+
+
+		bool	send_topic(Client &client, int fd);
 };
 
 template <typename T>

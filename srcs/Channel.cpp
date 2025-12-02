@@ -211,3 +211,11 @@ void	Channel::change_nick_user( std::string user, std::string new_nick, std::str
 		}
 	}
 }
+
+bool	Channel::send_topic(Client &c, int fd)
+{
+	if (_topic.empty())
+		return(c.send_message(":irc 331 " + c.get_nick() + " " + this->get_name() + " :No topic is set", fd)); 
+	else
+		return(c.send_message(":irc 332 " + c.get_nick() + " " + this->get_name() + " :" + _topic, fd));
+}
