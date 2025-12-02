@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/16 11:00:25 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/12/02 14:18:03 by negambar         ###   ########.fr       */
+/*   Updated: 2025/12/02 14:42:49 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,44 +25,44 @@ void Server::command_map()
 	_commands["JOIN"] = &Server::join; // works
 	_commands["NAMES"] = &Server::names; //works
 	_commands["MODE"] = &Server::mode; //works
-	_commands["INVITE"] = &Server::invite;
-	_commands["PART"] = &Server::part;
-	_commands["TOPIC"] = &Server::topic;
-	_commands["KICK"] = &Server::kick;
+	_commands["INVITE"] = &Server::invite; //works????
+	_commands["PART"] = &Server::part; //works
+	_commands["TOPIC"] = &Server::topic; //WORKS
+	
+	//segfaults
+	_commands["KICK"] = &Server::kick; 
 }
 
 bool Server::handle_command(int fd, const std::vector<std::string> &line)
 {
 	if (_commands.find(line[0]) != _commands.end())
 	{
-        //std::cout << "ENTRA" << std::endl;
 		return (this->*(_commands[line[0]]))(fd, line);
 	}
 	else
 	{
 		std::string tmp = "temporary error: " + line[0] + "comando sconosciuto";
 		//setOutbuf(fd, tmp);
-		return (false);//stesso return (false) per comando non trovato e per comando trovato ma andato male. Cambiare?
+		return (false);
 	}
-	return (false); //forse cambiare	
+	return (false);
 }
 
 bool	Server::nick(int fd, std::vector<std::string> vect)
 {
 	if (vect.size() >= 2) 
 	{
-		Client *client = _clients[fd];//per accedere alle funzioni di client
-		
+		Client *client = _clients[fd];
+
 		std::map<int, Client *>::iterator it = _clients.begin();
-		for (; it != _clients.end(); ++it)//controlla se nick gia' preso
+		for (; it != _clients.end(); ++it)
 		{
 			if (it->first != fd && it->second->get_nick() == vect[1])
 			{
-				//send(fd, "Nickname already taken\n", 24, 0);
 				return (false);
 			}
 		}
-		if (it == _clients.end()) //se il nick non e' gia' preso
+		if (it == _clients.end())
 		{
 			std::string full = ":" + client->get_nick() + "!" + client->get_user() + "@" + client->get_hostname() + " NICK :" + vect[1];
 			std::vector<Channel*>& channels = client->getChannels();
@@ -73,9 +73,7 @@ bool	Server::nick(int fd, std::vector<std::string> vect)
 				for (std::vector<Channel *>::iterator iter = channels.begin(); iter != channels.end(); ++iter)//ciclo scrive messaggio a tutti tranne che a utente
 					(*iter)->change_nick_user(client->get_nick(), vect[1], full);
 			}
-			client->set_nick(vect[1]); //questo va fatto alla fine, altrimenti non riesci a trovare il client cercando per nome
-		/* std::string reply = "Nickname set to " + vect[1] + "\n";
-		send(fd, reply.c_str(), reply.size(), 0); */
+			client->set_nick(vect[1]);
 		}
 		return (true);
 	}
@@ -121,8 +119,13 @@ bool	Server::quit(int fd, std::vector<std::string> vect)
 	if (!client) return true;
 	
 	std::string goodbye = "Goodbye";
-	if (vect.size() > 1 && vect[1][0] == ':')
+	if (vect.size() > 1 && vect[1][0] == ':'){
 		goodbye = vect[1];
+        // If the reason starts with ':', remove it for cleaner output (optional)
+		if (goodbye.size() > 0 && goodbye[0] == ':') {
+			goodbye.erase(0, 1);
+		}
+	}
 
 	std::string full = ":" + client->get_nick() + "!" + client->get_user() + "@" + client->get_hostname() + " QUIT " + goodbye; // \r\n vengono aggiunti in send_message() in channel
 	

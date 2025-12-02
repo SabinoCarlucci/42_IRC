@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/18 11:32:37 by negambar          #+#    #+#             */
-/*   Updated: 2025/12/02 14:10:16 by negambar         ###   ########.fr       */
+/*   Updated: 2025/12/02 14:42:29 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -231,4 +231,25 @@ void	Server::write_to_client(int fd, std::string msg)
 {
 	msg.append("\r\n");
 	send(fd, msg.c_str(), msg.size(), 0);
+}
+
+
+void	Channel::remove_user(std::string name)
+{
+// 1. Find the user in the channel's member list
+    std::vector<std::string>::iterator it = std::find(this->_clients.begin(), this->_clients.end(), name);
+
+    // 2. CRITICAL FIX: Only erase if the user was actually found (i.e., iterator is NOT end())
+    if (it != this->_clients.end())
+    {
+        this->_clients.erase(it);
+
+        // 3. CRITICAL FIX: Update the Client object's channel list (assuming you have a way to find the Client*)
+        Client* c = serv->find_by_nick(name); // Assuming this is how you get the Client*
+        if (c != NULL)
+        {
+            // Assuming Client class has a method to remove a Channel*
+            c->remove_channel_pointer(this);
+        }
+    }
 }
