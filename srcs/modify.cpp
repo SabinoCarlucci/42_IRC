@@ -9,11 +9,13 @@ void    Channel::modify_invite(Client &client, std::string params, bool what)
     bool mod = _ops.find(client.get_nick()) != _ops.end();
     if (what && mod)
     {
+        client.send_message(":" + client.get_nick() + "!" + client.get_user() + "@" + client.get_hostname() + " MODE " + _name + " +i\r\n", client.get_client_fd());
         serv->send_to_channel(client.get_client_fd(), this->get_name(), ":" + client.get_nick() + "!" + client.get_user() + "@" + client.get_hostname() + " MODE " + _name + " +i\r\n");
         _modes['i'] = 1;
     }
     else if (!what && mod)
     {
+        client.send_message(":" + client.get_nick() + "!" + client.get_user() + "@" + client.get_hostname() + " MODE " + _name + " -i\r\n", client.get_client_fd());
         serv->send_to_channel(client.get_client_fd(), this->get_name(), ":" + client.get_nick() + "!" + client.get_user() + "@" + client.get_hostname() + " MODE " + _name + " -i\r\n");
         _modes['i'] = 0;
     }
@@ -34,11 +36,13 @@ void    Channel::modify_topic(Client &c, std::string params, bool what)
             _topic = params;
             topuc(c, _topic);
         }
+        c.send_message(":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " MODE " + _name + " +t\r\n", c.get_client_fd());
         serv->send_to_channel(c.get_client_fd(), get_name(), ":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " MODE " + _name + " +t\r\n");
     }
     else if (!what && mod)
     {
         _modes['t'] = 0;
+        c.send_message(":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " MODE " + _name + " -t\r\n", c.get_client_fd());
         serv->send_to_channel(c.get_client_fd(), get_name(), ":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " MODE " + _name + " -t\r\n");
         if (params.find(" ") != std::string::npos)
             _topic = params.substr(params.find(" ") + 1);
@@ -60,11 +64,13 @@ void Channel::modify_key(Client &c, std::string params, bool what)
     {
         _modes['k'] = 1;
         _pass = params;
-        serv->send_to_channel(c.get_client_fd(), get_name(), ":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " MODE " + _name + " +k\r\n");
+        c.send_message(":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " MODE " + _name + " +k " + params + "\r\n", c.get_client_fd());
+        serv->send_to_channel(c.get_client_fd(), get_name(), ":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " MODE " + _name + " +k " + params + "\r\n");
     }
     else if (!what && mod)
     {
         _modes['k'] = 0;
+        c.send_message(":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " MODE " + _name + " -k\r\n", c.get_client_fd());
         serv->send_to_channel(c.get_client_fd(), get_name(), ":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " MODE " + _name + " -k\r\n");
         _pass = "";
     }
@@ -105,6 +111,7 @@ void    Channel::modify_op(Client &c, std::string params, bool what)
     {
        if (_ops.find(params) != _ops.end())
         {
+            c.send_message(":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " MODE " + _name + " -o " + params + "\r\n", c.get_client_fd());
             serv->send_to_channel(c.get_client_fd(), get_name(), ":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " MODE " + _name + " -o " + params + "\r\n");
         }
         else
@@ -143,11 +150,13 @@ void Channel::modify_limit(Client &c, std::string params, bool what)
         }
         
         _modes['l'] = static_cast<int>(limit_val);
+        c.send_message(":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " MODE " + _name + " +l " + params + "\r\n", c.get_client_fd());
         serv->send_to_channel(c.get_client_fd(), get_name(), ":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " MODE " + _name + " +l " + params + "\r\n");
     }
     else
     {
         _modes['l'] = 0;
+        c.send_message(":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " MODE " + _name + " -l\r\n", c.get_client_fd());
         serv->send_to_channel(c.get_client_fd(), get_name(), ":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " MODE " + _name + " -l\r\n");
     }
 }

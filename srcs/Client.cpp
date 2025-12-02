@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 12:05:11 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/12/02 12:51:31 by negambar         ###   ########.fr       */
+/*   Updated: 2025/12/02 13:47:20 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,8 +24,8 @@ Client::Client(int clientSocket_arg, const struct sockaddr_in _clientArg)
 	_nick(""),
 	_user(""),
 	_hostname(""),
-	_authenticated(false),
 	clientSocket(clientSocket_arg),
+	_authenticated(false),
 	_channels()
 {
 }

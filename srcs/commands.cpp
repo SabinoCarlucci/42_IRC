@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/16 11:00:25 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/12/02 13:07:55 by negambar         ###   ########.fr       */
+/*   Updated: 2025/12/02 14:18:03 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,15 +16,15 @@
 
 void Server::command_map()
 {
-	_commands["NICK"] = &Server::nick;
-	_commands["PASS"] = &Server::pass;
-	_commands["USER"] = &Server::user;
-	_commands["QUIT"] = &Server::quit;
-	_commands["PRIVMSG"] = &Server::privMsg;
-	_commands["privmsg"] = &Server::privMsg;
-	_commands["JOIN"] = &Server::join;
-	_commands["NAMES"] = &Server::names;
-	_commands["MODE"] = &Server::mode;
+	_commands["NICK"] = &Server::nick; //works
+	_commands["PASS"] = &Server::pass; //works
+	_commands["USER"] = &Server::user; //works
+	_commands["QUIT"] = &Server::quit; //works
+	_commands["PRIVMSG"] = &Server::privMsg; //works
+	_commands["privmsg"] = &Server::privMsg; // ...
+	_commands["JOIN"] = &Server::join; // works
+	_commands["NAMES"] = &Server::names; //works
+	_commands["MODE"] = &Server::mode; //works
 	_commands["INVITE"] = &Server::invite;
 	_commands["PART"] = &Server::part;
 	_commands["TOPIC"] = &Server::topic;
@@ -213,7 +213,6 @@ bool Server::mode(int fd, std::vector<std::string> parts)
 	if (parts.size() < 2)
 	{
 		client->send_message(":irc 461 " + client->get_nick() + " MODE :Not enough parameters", fd);
-		// delete	client;
 		return (false);
 	}
 	if (parts.size() == 2)

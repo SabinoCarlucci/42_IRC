@@ -20,13 +20,13 @@ class Channel
 		Server		*serv;
 		int			limit;
 		std::string			_topic;
-		std::map<std::string, bool> _ops;
         std::map<char, bool> _modes; //tipo "invite only" = false/true
         std::string _pass;
         std::vector<std::string> _clients;
 		std::vector<std::string> _invites;
         std::map<char, void (Channel::*)(Client&, std::string, bool)> _mode_funcs;
-    public:
+	public:
+		std::map<std::string, bool> _ops;
 		Channel(std::string name, Server *server);
         std::string                 get_name() const;
         std::string                 get_pass() const;

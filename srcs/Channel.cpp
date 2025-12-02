@@ -109,7 +109,7 @@ bool Channel::modify_mode(std::vector<std::string> parts, Client &client, int fd
              mode_arg = parts[arg_index];
              arg_index++; // Consume the argument
         }
-        // If it needs an arg and we don't have one, your specific mode function should handle the error (461 ERR_NEEDMOREPARAMS).
+        // If it needs an arg and we don't have one, the specific mode function should handle the error (461 ERR_NEEDMOREPARAMS).
 
         // 4. Call the mode function
         bool is_set = (sign == '+');

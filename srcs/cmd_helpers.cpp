@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/18 11:32:37 by negambar          #+#    #+#             */
-/*   Updated: 2025/12/02 13:11:46 by negambar         ###   ########.fr       */
+/*   Updated: 2025/12/02 14:10:16 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,7 +119,6 @@ std::string Server::getNamesMessage(Channel *channel, int client_fd)
     std::string message = ":irc 353 " + nick + " = " + channel_name + " :";
 
     // 2. Append the list of nicks
-    // Note: You may want to add prefixes (@) for operators users.
     for (size_t i = 0; i < clients.size(); ++i) {
 		std::string prefix = "";
 		if (channel->is_op(clients[i]))
@@ -131,7 +130,7 @@ std::string Server::getNamesMessage(Channel *channel, int client_fd)
         }
     }
 
-    // message += "\r\n";
+    message += "\r\n";
     return message;
 }
 
@@ -150,7 +149,7 @@ bool Server::names(int fd, std::vector<std::string> name)
 	if (!_clients[fd]->send_message(names_reply, fd))
 		return (false);
 	
-	std::string end = ":irc 366 " + _clients[fd]->get_nick() + " " + name[1] + " :End of /NAMES list";
+	std::string end = ":irc 366 " + _clients[fd]->get_nick() + " " + name[1] + " :End of /NAMES list\r\n";
 	if (!_clients[fd]->send_message(end, fd))
 		return (false);
 	return (true);
@@ -206,6 +205,7 @@ void	Channel::join_channel(Client &c, std::vector<std::string> parts, int fd)
     c.send_message(join_msg, c.get_client_fd());
 	serv->send_to_channel(c.get_client_fd(), get_name(), join_msg);
 	send_modes(c, c.get_client_fd());
+	send_topic(c, c.get_client_fd());
 	serv->names(fd, parts);
 }
 

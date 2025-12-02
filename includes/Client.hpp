@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 11:42:06 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/12/02 13:13:20 by negambar         ###   ########.fr       */
+/*   Updated: 2025/12/02 13:24:16 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ private:
     std::string _nick;
     std::string _user;
     std::string _hostname;
-	int			clientSocket
+	int			clientSocket;
 	bool		_authenticated;
     std::vector<Channel *> _channels;
 	
