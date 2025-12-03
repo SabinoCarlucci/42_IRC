@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 13:38:41 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/12/03 15:35:45 by negambar         ###   ########.fr       */
+/*   Updated: 2025/12/03 18:00:37 by scarlucc         ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 
 #include "../includes/Server.hpp"
@@ -28,7 +28,6 @@ Server::Server(int port, const std::string &password)
 {
     _server_fd = make_server_socket(_port);
     if (_server_fd < 0) {
-        //std::cerr << "Failed to create server socket\n"; //ridondante usare sia questo che throw
         throw std::runtime_error("Failed to create server socket");
     }
 
@@ -60,10 +59,18 @@ Server::~Server()
     for (size_t i = 0; i < _pfds.size(); ++i) close(_pfds[i].fd);
 }
 
-int Server::set_nonblocking(int fd) {
+//versione vecchia
+//commento da cancellare: se funziona la versione nuova, cancella questa
+/* int Server::set_nonblocking(int fd) {
     int flags = fcntl(fd, F_GETFL, 0);
     if (flags < 0) return -1;
     if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) < 0) return -1;
+    return 0;
+} */
+
+int Server::set_nonblocking(int fd) {
+    if (fcntl(fd, F_SETFL, O_NONBLOCK) < 0)
+        return -1;
     return 0;
 }
 
@@ -115,17 +122,16 @@ void Server::run()
     while (true) {
         int rv = poll(_pfds.empty() ? NULL : &_pfds[0], _pfds.size(), -1);
         if (rv < 0) {
-            if (errno == EINTR) continue;
+            //if (errno == EINTR) continue;
             std::cerr << "poll in run()" << std::endl;
             break;
         }
-        // handle events
-        // first entry: server socket
+        //server
         if (!_pfds.empty() && (_pfds[0].revents & POLLIN)) {
             accept_new_connection();
             _pfds[0].revents = 0;
         }
-        // then clients
+        //clients
         for (size_t i = 1; i < _pfds.size(); )
 		{
 			int fd = _pfds[i].fd;
@@ -133,7 +139,7 @@ void Server::run()
 
 			if (re & (POLLERR | POLLHUP | POLLNVAL)) {
 				close_client(fd);
-				// non incrementi i, perché ora il prossimo elemento è in questa stessa posizione
+				// non incremento i, perché ora il prossimo elemento è in questa stessa posizione
 				continue;
 			}
 
@@ -160,7 +166,6 @@ void Server::accept_new_connection()
     socklen_t cli_len = sizeof(cli_addr);
     int client_fd = accept(_server_fd, (struct sockaddr*)&cli_addr, &cli_len);
     if (client_fd < 0) {
-        if (errno == EAGAIN || errno == EWOULDBLOCK) return;
         std::cerr << "accept in accept_new_connection()" << std::endl;
         return;
     }
@@ -220,10 +225,16 @@ void Server::handle_client_read(int fd)
         }
     }else if (n == 0) {
         std::cout << "Client fd=" << fd << " disconnected\n";
-        close_client(fd);//serve resettare eventi con _pfds[i].revents = 0; ???
+        std::vector<std::string> fake_quit_msg;
+		fake_quit_msg.push_back("QUIT");
+		fake_quit_msg.push_back(":Client disconnected");
+		quit(fd, fake_quit_msg);
     } else {
 		std::cerr << "recv in handle_client_read()" << std::endl;
-        close_client(fd);
+		std::vector<std::string> fake_quit_msg;
+		fake_quit_msg.push_back("QUIT");
+		fake_quit_msg.push_back(":Connection lost");
+		quit(fd, fake_quit_msg);
     }
 }
 
