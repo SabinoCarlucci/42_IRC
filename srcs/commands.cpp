@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/16 11:00:25 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/12/02 14:42:49 by negambar         ###   ########.fr       */
+/*   Updated: 2025/12/03 13:57:24 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,9 +28,7 @@ void Server::command_map()
 	_commands["INVITE"] = &Server::invite; //works????
 	_commands["PART"] = &Server::part; //works
 	_commands["TOPIC"] = &Server::topic; //WORKS
-	
-	//segfaults
-	_commands["KICK"] = &Server::kick; 
+	_commands["KICK"] = &Server::kick; //works
 }
 
 bool Server::handle_command(int fd, const std::vector<std::string> &line)
@@ -130,8 +128,16 @@ bool	Server::quit(int fd, std::vector<std::string> vect)
 	std::string full = ":" + client->get_nick() + "!" + client->get_user() + "@" + client->get_hostname() + " QUIT " + goodbye; // \r\n vengono aggiunti in send_message() in channel
 	
 	std::vector<Channel*>& channels = client->getChannels();
-	for (std::vector<Channel *>::iterator it = channels.begin(); it != channels.end(); ++it)
-		(*it)->quit_user(client->get_nick(), full);
+	// for (std::vector<Channel *>::iterator it = channels.begin(); it != channels.end(); ++it)
+	// 	(*it)->quit_user(client->get_nick(), full);
+	
+	for (size_t i = 0; i < channels.size(); ++i)
+	{
+	    Channel* chan = channels[i];
+	    if (chan)
+	        chan->quit_user(client->get_nick(), full);
+	}
+
 	close_client(fd);
 	return (true);
 }
@@ -220,15 +226,28 @@ bool Server::mode(int fd, std::vector<std::string> parts)
 	}
 	if (parts.size() == 2)
 	{
-		Channel *chan = find_channel_name(parts[1]);
-		if (chan)
-			chan->send_modes(*client, fd);
+		if (parts[1][0] == '#')
+		{
+			Channel *chan = find_channel_name(parts[1]);
+			if (chan)
+				chan->send_modes(*client, fd);
+			else
+                client->send_message(":irc 403 " + client->get_nick() + " " + parts[1] + " :No such channel\r\n", fd);
+		}
 		return (true);
 	}
 	if (parts.size() < 3) 
 		parts.push_back("");
+
 	if (find_by_nick(parts[1]))
 		return (true);
+
+	std::map<std::string, Channel *>::iterator it = _channels.find(parts[1]);
+	if (it == _channels.end())
+	{
+		client->send_message(":irc 403 " + client->get_nick() + " " + parts[1] + " :No such channel\r\n", fd);
+		return false;
+	}
 	bool ret = _channels[parts[1]]->modify_mode(parts, *_clients[fd], fd);
 	return ret;
 }
@@ -391,33 +410,6 @@ bool Server::kick(int fd, std::vector<std::string> parts)
 		}
 	}
 	return true;
-    // if (parts.size() < 3)
-    // {
-    //     write_to_client(fd, ":irc 461 " + _clients[fd]->get_nick() + " KICK :Not enough parameters");
-    //     return false;
-    // }
-
-    // std::string kick_msg = "oh oh! stinkyyy";
-
-    // if (parts.size() > 3)
-    // {
-    //     size_t pos = parts[3].find(":");
-    //     if (pos != std::string::npos)
-    //         kick_msg = parts[3].substr(pos + 1);
-    //     else
-    //         kick_msg = parts[3];
-    // }
-
-    // std::vector<std::string> kick_channels = split(parts[1], ",");
-    // std::vector<std::string> kick_clients = split(parts[2], ",");
-    
-    // for (std::vector<std::string>::iterator it = kick_channels.begin(); it != kick_channels.end(); ++it)
-    // {
-    //     for (std::vector<std::string>::iterator it2 = kick_clients.begin(); it2 != kick_clients.end(); ++it2)
-    //         kick_in_loop(fd, *it, *it2, kick_msg);
-    // }
-
-    // return true;
 }
 
 

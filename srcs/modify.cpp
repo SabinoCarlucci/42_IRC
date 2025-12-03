@@ -110,9 +110,13 @@ void    Channel::modify_op(Client &c, std::string params, bool what)
     else if (!what && mod)
     {
        if (_ops.find(params) != _ops.end())
-        {
-            c.send_message(":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " MODE " + _name + " -o " + params + "\r\n", c.get_client_fd());
-            serv->send_to_channel(c.get_client_fd(), get_name(), ":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " MODE " + _name + " -o " + params + "\r\n");
+       {
+        c.send_message(":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " MODE " + _name + " -o " + params + "\r\n", c.get_client_fd());
+        serv->send_to_channel(c.get_client_fd(), get_name(), ":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " MODE " + _name + " -o " + params + "\r\n");
+        _ops.erase(params);
+        Client *de_opped_client = serv->find_by_nick(params);
+        if (de_opped_client)
+             de_opped_client->send_message(":" + c.get_nick() + "!" + c.get_user() + "@" + c.get_hostname() + " MODE " + _name + " -o " + params + "\r\n", de_opped_client->get_client_fd());
         }
         else
         {

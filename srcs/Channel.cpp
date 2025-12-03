@@ -78,12 +78,11 @@ void	Channel::send_modes(Client &client, int fd)
 bool Channel::modify_mode(std::vector<std::string> parts, Client &client, int fd)
 {
     // Mode string is parts[2], Arguments start from parts[3]
-    if (parts.size() < 3) {
-        // Not enough parts to even have a mode string
+    if (parts.size() <= 2) {
+       client.send_message(":irc 461 " + client.get_nick() + " MODE :Not enough parameters\r\n", fd);
         return false;
     }
-
-    size_t arg_index = 3;
+	size_t arg_index = 3;
     char sign = '+';
 
     for (size_t i = 0; i < parts[2].length(); ++i)

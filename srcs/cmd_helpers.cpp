@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/18 11:32:37 by negambar          #+#    #+#             */
-/*   Updated: 2025/12/02 14:42:29 by negambar         ###   ########.fr       */
+/*   Updated: 2025/12/03 13:39:13 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -136,6 +136,12 @@ std::string Server::getNamesMessage(Channel *channel, int client_fd)
 
 bool Server::names(int fd, std::vector<std::string> name)
 {
+	if (name.size() < 2)
+	{
+		std::string err = ":irc 461 " + _clients[fd]->get_nick() + " NAMES :Not enough parameters\r\n";
+		_clients[fd]->send_message(err, fd);
+		return (false);
+	}
 	if (_channels.find(name[1]) == _channels.end())
 	{
 		std::string err = "403 " + _clients[fd]->get_nick() + " " + name[1] + " :No such channel\r\n";

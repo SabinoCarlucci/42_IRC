@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 11:46:27 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/12/02 13:13:46 by negambar         ###   ########.fr       */
+/*   Updated: 2025/12/03 12:02:07 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,7 +92,7 @@ public:
     std::vector<std::string>    split2(std::string str, char c, size_t pos);
     size_t                      strlen(char *s){size_t i = 0; while (s[i++]){}; return (i);}
     void                        kick_in_loop(int client, std::string kick_chan, std::string kick_clients, std::string msg);
-
+    bool                        validate_mode_syntax(Client &c, std::vector<std::string> &parts);
 
     std::string                 unresplit(std::vector<std::string> v)
     {
