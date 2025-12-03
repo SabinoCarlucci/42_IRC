@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 11:46:27 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/28 15:59:13 by negambar         ###   ########.fr       */
+/*   Updated: 2025/12/03 12:02:07 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,10 +84,27 @@ public:
     bool    mode(int fd, std::vector<std::string> parts);
     bool    invite(int fd, std::vector<std::string> parts);
     bool    part(int fd, std::vector<std::string> parts);
+    bool    kick(int fd, std::vector<std::string> parts);
+    bool    topic(int fd, std::vector<std::string> params);
     // helpers
+    void                        write_to_client(int fd, std::string msg);
     std::vector<std::string>    split(const std::string &s, const std::string &delim);
     std::vector<std::string>    split2(std::string str, char c, size_t pos);
     size_t                      strlen(char *s){size_t i = 0; while (s[i++]){}; return (i);}
+    void                        kick_in_loop(int client, std::string kick_chan, std::string kick_clients, std::string msg);
+    bool                        validate_mode_syntax(Client &c, std::vector<std::string> &parts);
+
+    std::string                 unresplit(std::vector<std::string> v)
+    {
+        std::string result;
+        for (size_t i = 0; i < v.size(); ++i)
+        {
+            result += v[i];
+            if (i + 1 < v.size())
+                result += " ";
+        }
+        return (result);
+    };
 };
 
 #endif

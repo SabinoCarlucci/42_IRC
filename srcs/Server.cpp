@@ -1,14 +1,14 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
+/*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 13:38:41 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/12/01 18:58:37 by scarlucc         ###   ########.fr       */
+/*   Updated: 2025/12/03 14:21:18 by negambar         ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 
 #include "../includes/Server.hpp"
@@ -172,8 +172,7 @@ void Server::accept_new_connection()
     
     char ipbuf[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &(cli_addr.sin_addr), ipbuf, INET_ADDRSTRLEN);
-
-    Client *c = new Client(client_fd);
+    Client *c = new Client(client_fd, cli_addr);
     c->set_hostname(ipbuf);
     _clients[client_fd] = c;
 

@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 11:42:06 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/11/28 16:00:07 by negambar         ###   ########.fr       */
+/*   Updated: 2025/12/02 14:43:49 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,21 +31,25 @@ class Client
 {
 private:
     int 		_fd;
+	struct sockaddr_in	clientAddr;
     std::string _buffer;
     std::string _nick;
     std::string _user;
     std::string _hostname;
+	int			clientSocket;
 	bool		_authenticated;
     std::vector<Channel *> _channels;
 	
 public:
     Client(int fd);
+	Client(int clientSocket, const struct sockaddr_in clientAddr_arg);
     ~Client();
 
     std::string &buffer();
 	
 	int get_client_fd() const;
-	//void set_client_fd(int fd);
+	struct sockaddr_in	get_clientAddr() {return (clientAddr);}
+	int	get_clientSocket() {return (clientSocket);}
 
     std::string &get_hostname();
     void set_hostname(const std::string &h);
@@ -67,6 +71,15 @@ public:
 
     void    add_client_pointer(Channel *channel);
     void    remove_client_pointer(Channel *chan);
+
+
+	void remove_channel_pointer(Channel* channel_ptr)
+	{
+		std::vector<Channel*>& channels = getChannels();
+	    std::vector<Channel*>::iterator it = std::find(channels.begin(), channels.end(), channel_ptr);
+	    if (it != channels.end())
+	        channels.erase(it);
+	}
 };
 
 //prints alle the information about the client

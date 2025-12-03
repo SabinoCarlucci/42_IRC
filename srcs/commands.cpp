@@ -1,14 +1,14 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   commands.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
+/*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/16 11:00:25 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/12/01 12:43:20 by scarlucc         ###   ########.fr       */
+/*   Updated: 2025/12/03 13:57:24 by negambar         ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #include "../includes/Server.hpp"
 #include "../includes/Channel.hpp"
@@ -16,51 +16,51 @@
 
 void Server::command_map()
 {
-	_commands["NICK"] = &Server::nick;
-	_commands["PASS"] = &Server::pass;
-	_commands["USER"] = &Server::user;
-	_commands["QUIT"] = &Server::quit;
-	_commands["PRIVMSG"] = &Server::privMsg;
-	_commands["privmsg"] = &Server::privMsg;
-	_commands["JOIN"] = &Server::join;
-	_commands["NAMES"] = &Server::names;
-	_commands["MODE"] = &Server::mode;
-	_commands["INVITE"] = &Server::invite;
-	_commands["PART"] = &Server::part;
+	_commands["NICK"] = &Server::nick; //works
+	_commands["PASS"] = &Server::pass; //works
+	_commands["USER"] = &Server::user; //works
+	_commands["QUIT"] = &Server::quit; //works
+	_commands["PRIVMSG"] = &Server::privMsg; //works
+	_commands["privmsg"] = &Server::privMsg; // ...
+	_commands["JOIN"] = &Server::join; // works
+	_commands["NAMES"] = &Server::names; //works
+	_commands["MODE"] = &Server::mode; //works
+	_commands["INVITE"] = &Server::invite; //works????
+	_commands["PART"] = &Server::part; //works
+	_commands["TOPIC"] = &Server::topic; //WORKS
+	_commands["KICK"] = &Server::kick; //works
 }
 
 bool Server::handle_command(int fd, const std::vector<std::string> &line)
 {
 	if (_commands.find(line[0]) != _commands.end())
 	{
-        //std::cout << "ENTRA" << std::endl;
 		return (this->*(_commands[line[0]]))(fd, line);
 	}
 	else
 	{
 		std::string tmp = "temporary error: " + line[0] + "comando sconosciuto";
 		//setOutbuf(fd, tmp);
-		return (false);//stesso return (false) per comando non trovato e per comando trovato ma andato male. Cambiare?
+		return (false);
 	}
-	return (false); //forse cambiare	
+	return (false);
 }
 
 bool	Server::nick(int fd, std::vector<std::string> vect)
 {
 	if (vect.size() >= 2) 
 	{
-		Client *client = _clients[fd];//per accedere alle funzioni di client
-		
+		Client *client = _clients[fd];
+
 		std::map<int, Client *>::iterator it = _clients.begin();
-		for (; it != _clients.end(); ++it)//controlla se nick gia' preso
+		for (; it != _clients.end(); ++it)
 		{
 			if (it->first != fd && it->second->get_nick() == vect[1])
 			{
-				//send(fd, "Nickname already taken\n", 24, 0);
 				return (false);
 			}
 		}
-		if (it == _clients.end()) //se il nick non e' gia' preso
+		if (it == _clients.end())
 		{
 			std::string full = ":" + client->get_nick() + "!" + client->get_user() + "@" + client->get_hostname() + " NICK :" + vect[1];
 			std::vector<Channel*>& channels = client->getChannels();
@@ -71,9 +71,7 @@ bool	Server::nick(int fd, std::vector<std::string> vect)
 				for (std::vector<Channel *>::iterator iter = channels.begin(); iter != channels.end(); ++iter)//ciclo scrive messaggio a tutti tranne che a utente
 					(*iter)->change_nick_user(client->get_nick(), vect[1], full);
 			}
-			client->set_nick(vect[1]); //questo va fatto alla fine, altrimenti non riesci a trovare il client cercando per nome
-		/* std::string reply = "Nickname set to " + vect[1] + "\n";
-		send(fd, reply.c_str(), reply.size(), 0); */
+			client->set_nick(vect[1]);
 		}
 		return (true);
 	}
@@ -119,14 +117,27 @@ bool	Server::quit(int fd, std::vector<std::string> vect)
 	if (!client) return true;
 	
 	std::string goodbye = "Goodbye";
-	if (vect.size() > 1 && vect[1][0] == ':')
+	if (vect.size() > 1 && vect[1][0] == ':'){
 		goodbye = vect[1];
+        // If the reason starts with ':', remove it for cleaner output (optional)
+		if (goodbye.size() > 0 && goodbye[0] == ':') {
+			goodbye.erase(0, 1);
+		}
+	}
 
 	std::string full = ":" + client->get_nick() + "!" + client->get_user() + "@" + client->get_hostname() + " QUIT " + goodbye; // \r\n vengono aggiunti in send_message() in channel
 	
 	std::vector<Channel*>& channels = client->getChannels();
-	for (std::vector<Channel *>::iterator it = channels.begin(); it != channels.end(); ++it)
-		(*it)->quit_user(client->get_nick(), full);
+	// for (std::vector<Channel *>::iterator it = channels.begin(); it != channels.end(); ++it)
+	// 	(*it)->quit_user(client->get_nick(), full);
+	
+	for (size_t i = 0; i < channels.size(); ++i)
+	{
+	    Channel* chan = channels[i];
+	    if (chan)
+	        chan->quit_user(client->get_nick(), full);
+	}
+
 	close_client(fd);
 	return (true);
 }
@@ -211,20 +222,32 @@ bool Server::mode(int fd, std::vector<std::string> parts)
 	if (parts.size() < 2)
 	{
 		client->send_message(":irc 461 " + client->get_nick() + " MODE :Not enough parameters", fd);
-		// delete	client;
 		return (false);
 	}
 	if (parts.size() == 2)
 	{
-		Channel *chan = find_channel_name(parts[1]);
-		if (chan)
-			chan->send_modes(*client, fd);
+		if (parts[1][0] == '#')
+		{
+			Channel *chan = find_channel_name(parts[1]);
+			if (chan)
+				chan->send_modes(*client, fd);
+			else
+                client->send_message(":irc 403 " + client->get_nick() + " " + parts[1] + " :No such channel\r\n", fd);
+		}
 		return (true);
 	}
 	if (parts.size() < 3) 
 		parts.push_back("");
+
 	if (find_by_nick(parts[1]))
 		return (true);
+
+	std::map<std::string, Channel *>::iterator it = _channels.find(parts[1]);
+	if (it == _channels.end())
+	{
+		client->send_message(":irc 403 " + client->get_nick() + " " + parts[1] + " :No such channel\r\n", fd);
+		return false;
+	}
 	bool ret = _channels[parts[1]]->modify_mode(parts, *_clients[fd], fd);
 	return ret;
 }
@@ -324,4 +347,102 @@ bool Server::part(int fd, std::vector<std::string> parts)
 			sender->send_message(":irc 403 " + sender->get_nick() + " " + *it + " :No such channel", fd);
 	}
 	return (true);
+}
+
+void	Server::kick_in_loop(int fd, std::string kick_chan, std::string kick_clients, std::string msg)
+{
+	Channel	*chan = find_channel_name(kick_chan);
+	Client	*sender = _clients[fd];
+	if (!chan)
+	{
+		write_to_client(fd, ":irc 403 " + sender->get_nick() + " " + kick_chan + " :No such channel");
+		return ;
+	}
+	if (!sender->isInChannel(chan->get_name()))
+	{
+		write_to_client(fd, ":irc 442 " + sender->get_nick() + " " + kick_chan + " :You're not on that channel");
+		return;
+	}
+	if (!chan->is_op(sender->get_nick()))
+	{
+		write_to_client(fd, ":irc 482 " + sender->get_nick() + " " + kick_chan + " :You are not an channel operator");
+		return;
+	}
+	if (!sender->isInChannel(chan->get_name()))
+	{
+		if (find_by_nick(kick_clients) == NULL)
+			write_to_client(fd, ":irc 401 " + sender->get_nick() + " " + kick_clients + " :No such nick/channel");
+		else
+			write_to_client(fd, ":irc 441 " + sender->get_nick() + " " + kick_clients + " " + kick_chan + " :They aren't in that channel");
+		return;
+	}
+	write_to_client(find_by_nick(kick_clients)->get_clientSocket(), ":" + sender->get_nick() + " KICK " + kick_chan + " " + kick_clients + " :" + msg);
+	send_to_channel(fd, kick_chan, ":" + sender->get_nick() + "!" + sender->get_user() + "@" + sender->get_hostname() + " KICK " + kick_chan + " " + kick_clients + " :" + msg);
+	chan->send_message(":" + sender->get_nick() + "!" + sender->get_user() + "@" + sender->get_hostname() + " KICK " + kick_chan + " " + kick_clients + " :" + msg, fd);
+	chan->remove_client(kick_clients, *(find_by_nick(kick_clients)));
+}
+
+bool Server::kick(int fd, std::vector<std::string> parts)
+{
+	std::string message =	unresplit(parts);
+
+	std::string kick_msg = "stinkyyy!";
+	Client *c = _clients[fd];
+	size_t pos = message.find(" :");
+	if (pos != std::string::npos)
+	{
+		kick_msg = message.substr(pos + 2);
+		message = message.substr(0, pos);
+	}
+	std::vector<std::string> split_msg = split(message, " ");
+	if (split_msg.size() < 3)
+	{
+		write_to_client(fd, ":irc 461 " + c->get_nick() + " KICK :Not enough parameters");
+		return true;
+	}
+	std::vector<std::string> kick_channels = split(split_msg[1], ",");
+	std::vector<std::string> kick_clients = split(split_msg[2], ",");
+	for (std::vector<std::string>::iterator it = kick_channels.begin(); it != kick_channels.end(); ++it)
+	{
+		for (std::vector<std::string>::iterator it2 = kick_clients.begin(); it2 != kick_clients.end(); ++it2)
+		{
+			kick_in_loop(fd, *it, *it2, kick_msg);
+		}
+	}
+	return true;
+}
+
+
+bool Server::topic(int fd, std::vector<std::string> params)
+{
+	std::string params2 = unresplit(params);
+	std::string topic = "";
+	if (params2.find(":") != std::string::npos)
+	{
+		topic = params2.substr(params2.find(":") + 1);
+		params2 = params2.substr(0, params2.find(":"));
+	}
+	std::vector<std::string> split_msg = split(params2, " ");
+
+	if (split_msg.size() < 2) // TOPIC without #chan
+	{
+		write_to_client(fd, ":irc 461 " + _clients[fd]->get_nick() + " TOPIC :Not enough parameters");
+		return true;
+	}
+	Channel *chan = find_channel_name(split_msg[1]);
+	if (!chan)
+	{
+		_clients[fd]->send_message(":irc 403 " + _clients[fd]->get_nick() + " " + split_msg[1] + " :No such channel", fd);
+		return true;
+	}
+	if (_clients[fd]->isInChannel(chan->get_name()) == false)
+	{
+		_clients[fd]->send_message(":irc 442 " + _clients[fd]->get_nick() + " " + split_msg[1] + " :You're not on that channel", fd);
+		return true;
+	}
+	if (split_msg.size() == 2 + (topic.empty() ? 0 : 1))
+		chan->send_topic(*_clients[fd], fd);
+	else
+		chan->topuc(*_clients[fd], topic);
+	return true;
 }

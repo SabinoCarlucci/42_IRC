@@ -78,12 +78,11 @@ void	Channel::send_modes(Client &client, int fd)
 bool Channel::modify_mode(std::vector<std::string> parts, Client &client, int fd)
 {
     // Mode string is parts[2], Arguments start from parts[3]
-    if (parts.size() < 3) {
-        // Not enough parts to even have a mode string
+    if (parts.size() <= 2) {
+       client.send_message(":irc 461 " + client.get_nick() + " MODE :Not enough parameters\r\n", fd);
         return false;
     }
-
-    size_t arg_index = 3;
+	size_t arg_index = 3;
     char sign = '+';
 
     for (size_t i = 0; i < parts[2].length(); ++i)
@@ -109,7 +108,7 @@ bool Channel::modify_mode(std::vector<std::string> parts, Client &client, int fd
              mode_arg = parts[arg_index];
              arg_index++; // Consume the argument
         }
-        // If it needs an arg and we don't have one, your specific mode function should handle the error (461 ERR_NEEDMOREPARAMS).
+        // If it needs an arg and we don't have one, the specific mode function should handle the error (461 ERR_NEEDMOREPARAMS).
 
         // 4. Call the mode function
         bool is_set = (sign == '+');
@@ -210,4 +209,12 @@ void	Channel::change_nick_user( std::string user, std::string new_nick, std::str
 			//ripetere per altri elenchi, tipo ban e forse invite
 		}
 	}
+}
+
+bool	Channel::send_topic(Client &c, int fd)
+{
+	if (_topic.empty())
+		return(c.send_message(":irc 331 " + c.get_nick() + " " + this->get_name() + " :No topic is set", fd)); 
+	else
+		return(c.send_message(":irc 332 " + c.get_nick() + " " + this->get_name() + " :" + _topic, fd));
 }

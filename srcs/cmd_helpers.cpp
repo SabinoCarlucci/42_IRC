@@ -1,14 +1,14 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   cmd_helpers.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
+/*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/18 11:32:37 by negambar          #+#    #+#             */
-/*   Updated: 2025/12/01 15:10:42 by scarlucc         ###   ########.fr       */
+/*   Updated: 2025/12/03 13:39:13 by negambar         ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #include "../includes/Server.hpp"
 #include "../includes/Channel.hpp"
@@ -119,7 +119,6 @@ std::string Server::getNamesMessage(Channel *channel, int client_fd)
     std::string message = ":irc 353 " + nick + " = " + channel_name + " :";
 
     // 2. Append the list of nicks
-    // Note: You may want to add prefixes (@) for operators users.
     for (size_t i = 0; i < clients.size(); ++i) {
 		std::string prefix = "";
 		if (channel->is_op(clients[i]))
@@ -131,12 +130,18 @@ std::string Server::getNamesMessage(Channel *channel, int client_fd)
         }
     }
 
-    // message += "\r\n";
+    message += "\r\n";
     return message;
 }
 
 bool Server::names(int fd, std::vector<std::string> name)
 {
+	if (name.size() < 2)
+	{
+		std::string err = ":irc 461 " + _clients[fd]->get_nick() + " NAMES :Not enough parameters\r\n";
+		_clients[fd]->send_message(err, fd);
+		return (false);
+	}
 	if (_channels.find(name[1]) == _channels.end())
 	{
 		std::string err = "403 " + _clients[fd]->get_nick() + " " + name[1] + " :No such channel\r\n";
@@ -150,7 +155,7 @@ bool Server::names(int fd, std::vector<std::string> name)
 	if (!_clients[fd]->send_message(names_reply, fd))
 		return (false);
 	
-	std::string end = ":irc 366 " + _clients[fd]->get_nick() + " " + name[1] + " :End of /NAMES list";
+	std::string end = ":irc 366 " + _clients[fd]->get_nick() + " " + name[1] + " :End of /NAMES list\r\n";
 	if (!_clients[fd]->send_message(end, fd))
 		return (false);
 	return (true);
@@ -206,6 +211,7 @@ void	Channel::join_channel(Client &c, std::vector<std::string> parts, int fd)
     c.send_message(join_msg, c.get_client_fd());
 	serv->send_to_channel(c.get_client_fd(), get_name(), join_msg);
 	send_modes(c, c.get_client_fd());
+	send_topic(c, c.get_client_fd());
 	serv->names(fd, parts);
 }
 
@@ -223,5 +229,33 @@ void	Channel::topuc(Client &client, std::string parameters)
 		client.send_message(":irc 482 " + client.get_nick() + " " + _name + " :You're not a channel operator", client.get_client_fd());
 		return;
 	}
+	client.send_message(":" + client.get_nick() + "!" + client.get_user() + "@" + client.get_hostname() + " TOPIC " + _name + " :" + _topic + "\r\n", client.get_client_fd());
 	serv->send_to_channel(client.get_client_fd(), this->get_name() ,":" + client.get_nick() + "!" + client.get_user() + "@" + client.get_hostname() + " TOPIC " + _name + " :" + _topic + "\r\n");
+}
+
+void	Server::write_to_client(int fd, std::string msg)
+{
+	msg.append("\r\n");
+	send(fd, msg.c_str(), msg.size(), 0);
+}
+
+
+void	Channel::remove_user(std::string name)
+{
+// 1. Find the user in the channel's member list
+    std::vector<std::string>::iterator it = std::find(this->_clients.begin(), this->_clients.end(), name);
+
+    // 2. CRITICAL FIX: Only erase if the user was actually found (i.e., iterator is NOT end())
+    if (it != this->_clients.end())
+    {
+        this->_clients.erase(it);
+
+        // 3. CRITICAL FIX: Update the Client object's channel list (assuming you have a way to find the Client*)
+        Client* c = serv->find_by_nick(name); // Assuming this is how you get the Client*
+        if (c != NULL)
+        {
+            // Assuming Client class has a method to remove a Channel*
+            c->remove_channel_pointer(this);
+        }
+    }
 }

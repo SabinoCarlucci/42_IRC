@@ -20,13 +20,13 @@ class Channel
 		Server		*serv;
 		int			limit;
 		std::string			_topic;
-		std::map<std::string, bool> _ops;
         std::map<char, bool> _modes; //tipo "invite only" = false/true
         std::string _pass;
         std::vector<std::string> _clients;
 		std::vector<std::string> _invites;
         std::map<char, void (Channel::*)(Client&, std::string, bool)> _mode_funcs;
-    public:
+	public:
+		std::map<std::string, bool> _ops;
 		Channel(std::string name, Server *server);
         std::string                 get_name() const;
         std::string                 get_pass() const;
@@ -55,9 +55,12 @@ class Channel
 		void						topuc(Client &client, std::string parameters);
 		void						join_channel(Client &c, std::vector<std::string> parts, int fd); //cambiato prototipo join_channel per evitare doppio messaggio di entrata
 		void						send_to_all( std::string quit_msg ); //versione semplificata di send_to_channel
-		void						remove_user( std::string user ) { this->_clients.erase(std::find(this->_clients.begin(),this->_clients.end(), user));}
+		void						remove_user( std::string user );
 		void						quit_user( std::string user, std::string quit_msg );
 		void						change_nick_user( std::string user, std::string new_nick, std::string msg );
+
+
+		bool	send_topic(Client &client, int fd);
 };
 
 template <typename T>
