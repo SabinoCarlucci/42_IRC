@@ -2,3 +2,4 @@ ircserv
 .o
 
 objs/*
+.vscode/*
