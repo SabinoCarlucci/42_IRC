@@ -1,14 +1,14 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: scarlucc <scarlucc@student.42firenze.it    +#+  +:+       +#+        */
+/*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 13:41:21 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/12/01 20:03:51 by scarlucc         ###   ########.fr       */
+/*   Updated: 2025/12/03 14:56:14 by negambar         ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 
 #include "../includes/Server.hpp"
@@ -54,12 +54,13 @@ int main(int argc, char **argv)
 	int port = static_cast<int>(value);
 	
     std::string pw = argv[2];
-	if (pw.length() <= 0 || pw.length() >= 8 || pw.find(" "))
+	if (pw.length() <= 0 || pw.length() >= 8 || pw.find(" ") != pw.npos)
 	{
 		std::cerr << "Usage: " << argv[0] << " <port> <password>\n";
 		std::cerr << "password must be between 1 and 8 characters and no spaces\n";
 		return 1;
 	}
+	
 
     try {
         Server serv(port, pw);

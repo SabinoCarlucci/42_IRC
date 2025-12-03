@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/16 11:00:25 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/12/03 13:57:24 by negambar         ###   ########.fr       */
+/*   Updated: 2025/12/03 15:35:41 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,18 @@ void Server::command_map()
 
 bool Server::handle_command(int fd, const std::vector<std::string> &line)
 {
+	bool auth = _clients[fd]->get_authenticated();
+	if (!auth && line[0] != "PASS" && line[0] != "CAP")
+	{
+		_clients[fd]->send_message(":irc 464 " + _clients[fd]->get_nick() + " :Password required\r\n", fd);
+		return (false);
+	}
+	else if (!auth && (_clients[fd]->get_user() == "" || _clients[fd]->get_nick() == "")
+			&& (line[0] != "PASS" && line[0] != "NICK" && line[0] != "USER" && line[0] != "CAP"))
+		{
+			_clients[fd]->send_message(":irc 451 " + _clients[fd]->get_nick() + " :You have not registered", fd);
+			return(false);
+		}
 	if (_commands.find(line[0]) != _commands.end())
 	{
 		return (this->*(_commands[line[0]]))(fd, line);
@@ -65,7 +77,7 @@ bool	Server::nick(int fd, std::vector<std::string> vect)
 			std::string full = ":" + client->get_nick() + "!" + client->get_user() + "@" + client->get_hostname() + " NICK :" + vect[1];
 			std::vector<Channel*>& channels = client->getChannels();
 			std::string full_newline = full + "\r\n";
-			send(fd, full_newline.c_str(), full_newline.size(), 0);  //se utente in nessun canale, scrivi messaggio solo a lui
+			send(fd, full_newline.c_str(), full_newline.size(), MSG_NOSIGNAL);  //se utente in nessun canale, scrivi messaggio solo a lui
 			if (channels.size() != 0)
 			{
 				for (std::vector<Channel *>::iterator iter = channels.begin(); iter != channels.end(); ++iter)//ciclo scrive messaggio a tutti tranne che a utente
@@ -76,7 +88,7 @@ bool	Server::nick(int fd, std::vector<std::string> vect)
 		return (true);
 	}
 	std::string errmsg = "NICK: not enough parameters\n";//messaggio di errore da cambiare
-	send(fd, errmsg.c_str(), errmsg.size(), 0);
+	send(fd, errmsg.c_str(), errmsg.size(), MSG_NOSIGNAL);
 	return (false);
 }
 
@@ -86,28 +98,34 @@ bool	Server::pass(int fd, std::vector<std::string> vect)
 	{
 		_clients[fd]->set_authenticated();
 		std::string reply = "Password accepted\r\n";
-		send(fd, reply.c_str(), reply.size(), 0);
+		send(fd, reply.c_str(), reply.size(),MSG_NOSIGNAL);
+		_clients[fd]->set_authenticated();
 		return (true);
 	} 
 	else 
 	{
 		std::string reply = "Password wrong\n";//serve messaggio di errore in caso non diamo pasword?
-		send(fd, reply.c_str(), reply.size(), 0);
+		send(fd, reply.c_str(), reply.size(), MSG_NOSIGNAL);
 		return (false);
 	}
 }
 
 bool	Server::user(int fd, std::vector<std::string> vect)
 {
+	if (vect.size()  < 5)
+	{
+		_clients[fd]->send_message(":irc 461 " + _clients[fd]->get_nick() + " USER :Not enough parameters", fd);
+		return (false);
+	}
 	if (vect.size() >= 2)
 	{
 		_clients[fd]->set_user(vect[1]);
 		std::string reply = "User set to " + vect[1] + "\n";
-		send(fd, reply.c_str(), reply.size(), 0);
+		send(fd, reply.c_str(), reply.size(), MSG_NOSIGNAL);
 		return (true);
 	}
 	std::string errmsg = "USER: not enough parameters\n";//messaggio di errore da cambiare
-	send(fd, errmsg.c_str(), errmsg.size(), 0);
+	send(fd, errmsg.c_str(), errmsg.size(), MSG_NOSIGNAL);
 	return (false);
 }
 
@@ -147,7 +165,7 @@ bool Server::privMsg(int fd, std::vector<std::string> parts)
     // 1. Check for parameters (needs target and message)
     if (parts.size() < 3 || parts[2][0] != ':')
     {
-        send(fd, "412 :No text to send\r\n", 22, 0); // Example: ERR_NOTEXTTOSEND (412)
+        send(fd, "412 :No text to send\r\n", 22, MSG_NOSIGNAL); // Example: ERR_NOTEXTTOSEND (412)
         return false;
     }
 
@@ -162,7 +180,7 @@ bool Server::privMsg(int fd, std::vector<std::string> parts)
     if (!receiver)
     {
 		std::string err = "401 " + recipient + " :No such nick\r\n";
-		send(fd, err.c_str(), err.size(), 0);
+		send(fd, err.c_str(), err.size(), MSG_NOSIGNAL);
 		return false;
     }
     // 3. Construct the full message
@@ -181,7 +199,7 @@ bool	Server::join(int fd, std::vector<std::string> parts)
 {
 	if (parts.size() < 2 || parts[1][0] != '#')
 	{
-		send(fd, " :No channel to join\r\n", 26, 0);
+		send(fd, " :No channel to join\r\n", 26, MSG_NOSIGNAL);
 		return (false);
 	}
 	std::string key;

@@ -33,7 +33,7 @@ std::string Channel::get_pass() const
 bool Channel::send_message(std::string message, int fd)
 {
 	message += "\r\n";
-	if (send(fd, message.c_str(), message.size(), 0) == -1)
+	if (send(fd, message.c_str(), message.size(), MSG_NOSIGNAL) == -1)
 	{
 		return false;
 	}

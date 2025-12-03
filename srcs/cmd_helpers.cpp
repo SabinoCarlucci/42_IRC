@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/18 11:32:37 by negambar          #+#    #+#             */
-/*   Updated: 2025/12/03 13:39:13 by negambar         ###   ########.fr       */
+/*   Updated: 2025/12/03 15:34:45 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ bool Server::send_to_channel(int fd, std::string recipient, std::vector<std::str
 	if (!receiver)
 	{
 		std::string err = "401 " + recipient + " :No such channel\r\n";
-		send(fd, err.c_str(), err.size(), 0);
+		send(fd, err.c_str(), err.size(), MSG_NOSIGNAL);
 		return false;
 	}
 
@@ -65,7 +65,7 @@ bool Server::send_to_channel(int fd, std::string recipient, std::string msg)
     {
         std::string err = ":irc 401 " + sender->get_nick() +
                           " " + recipient + " :No such channel\r\n";
-        send(fd, err.c_str(), err.size(), 0);
+        send(fd, err.c_str(), err.size(), MSG_NOSIGNAL);
         return false;
     }
 
@@ -236,7 +236,7 @@ void	Channel::topuc(Client &client, std::string parameters)
 void	Server::write_to_client(int fd, std::string msg)
 {
 	msg.append("\r\n");
-	send(fd, msg.c_str(), msg.size(), 0);
+	send(fd, msg.c_str(), msg.size(), MSG_NOSIGNAL);
 }
 
 

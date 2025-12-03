@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 12:05:11 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/12/02 13:47:20 by negambar         ###   ########.fr       */
+/*   Updated: 2025/12/03 15:34:20 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,7 @@ const std::vector<Channel*>& Client::getChannels() const { return _channels; }
 bool Client::send_message(std::string message, int fd)
 {
 	message += "\r\n";
-	if (send(fd, message.c_str(), message.size(), 0) == -1)
+	if (send(fd, message.c_str(), message.size(), MSG_NOSIGNAL) == -1)
 	{
 		return false;
 	}

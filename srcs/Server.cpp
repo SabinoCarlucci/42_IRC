@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/15 13:38:41 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/12/03 14:21:18 by negambar         ###   ########.fr       */
+/*   Updated: 2025/12/03 15:35:45 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -210,7 +210,7 @@ void Server::handle_client_read(int fd)
                 std::vector<std::string> parts = split2(line, ' ', line.find(":"));
 				
                 if (!parts.empty()) {
-                    handle_command(fd, parts);
+                        handle_command(fd, parts);
                     
 					if (!_clients.count(fd))//evita segfault per QUIT
                 		return;
@@ -252,7 +252,7 @@ void Server::broadcast_from(int sender_fd, const std::string &msg)
     for (size_t i = 1; i < _pfds.size(); ++i) {
         int fd = _pfds[i].fd;
         if (fd == sender_fd) continue;
-        send(fd, msg.c_str(), msg.size(), 0);
+        send(fd, msg.c_str(), msg.size(), MSG_NOSIGNAL);
     }
 }
 
