@@ -64,9 +64,9 @@ void	Channel::send_modes(Client &client, int fd)
 			modes += it->first;
 	}
 	if (_modes['l'])
-		limit += " " + NumberToString(_modes['l']);
+		limit += " " + NumberToString(limit);
 	if (_modes['k'])
-		limit += " " + _pass;
+		key += " " + _pass;
 	if (modes == " +")
 		modes = "none";
 	if (modes.find('l') < modes.find('k'))
