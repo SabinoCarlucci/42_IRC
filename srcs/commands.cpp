@@ -6,7 +6,7 @@
 /*   By: negambar <negambar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/16 11:00:25 by scarlucc          #+#    #+#             */
-/*   Updated: 2025/12/03 15:35:41 by negambar         ###   ########.fr       */
+/*   Updated: 2026/01/30 11:34:07 by negambar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -222,7 +222,7 @@ bool	Server::join(int fd, std::vector<std::string> parts)
         sender->send_message(join_msg, fd); 
 		_channels[joinChannel]->add_op(sender->get_nick());
 		_clients[fd]->send_message(":" + sender->get_nick() + " MODE " + joinChannel + " +o " + sender->get_nick() + "\r\n", fd);
-        names(fd, parts); 
+        names(fd, parts);
 	}
 	else
 	{
@@ -398,6 +398,7 @@ void	Server::kick_in_loop(int fd, std::string kick_chan, std::string kick_client
 	send_to_channel(fd, kick_chan, ":" + sender->get_nick() + "!" + sender->get_user() + "@" + sender->get_hostname() + " KICK " + kick_chan + " " + kick_clients + " :" + msg);
 	chan->send_message(":" + sender->get_nick() + "!" + sender->get_user() + "@" + sender->get_hostname() + " KICK " + kick_chan + " " + kick_clients + " :" + msg, fd);
 	chan->remove_client(kick_clients, *(find_by_nick(kick_clients)));
+	find_by_nick(kick_clients)->remove_client_pointer(chan);
 }
 
 bool Server::kick(int fd, std::vector<std::string> parts)
